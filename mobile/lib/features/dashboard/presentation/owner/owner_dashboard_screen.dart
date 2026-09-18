@@ -149,7 +149,9 @@ class _PopulatedBody extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: AppSpacing.space3,
           crossAxisSpacing: AppSpacing.space3,
-          childAspectRatio: 1.5,
+          // Just tall enough for StatCard's icon+label+value+sub column —
+          // 1.5 overflowed by under a pixel at some viewport widths.
+          childAspectRatio: 1.35,
           children: [
             for (final stat in data.stats)
               StatCard(
