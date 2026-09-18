@@ -11,6 +11,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/async_value_view.dart';
+import '../../../../shared/widgets/list_row_card.dart';
 import '../../../../shared/widgets/not_built_yet.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../../../shared/widgets/quick_action_button.dart';
@@ -149,7 +150,7 @@ class _TenantHomeContent extends StatelessWidget {
               for (final payment in data.recentPayments)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.space2),
-                  child: _ListRow(
+                  child: ListRowCard(
                     title: payment.periodLabel,
                     subtitle: '${payment.method} · ${payment.date}',
                     trailing: StatusChip(
@@ -165,7 +166,7 @@ class _TenantHomeContent extends StatelessWidget {
                   style: AppTextStyles.sectionHeading.copyWith(fontSize: 18),
                 ),
                 const SizedBox(height: AppSpacing.space2),
-                _ListRow(
+                ListRowCard(
                   title: data.openComplaintTitle!,
                   subtitle: data.openComplaintAge!,
                   trailing: StatusChip(
@@ -385,55 +386,6 @@ class _RentCardBody extends StatelessWidget {
               ),
             ],
           );
-  }
-}
-
-class _ListRow extends StatelessWidget {
-  const _ListRow({
-    required this.title,
-    required this.subtitle,
-    required this.trailing,
-  });
-
-  final String title;
-  final String subtitle;
-  final Widget trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.space3,
-        vertical: AppSpacing.space3,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border.all(color: context.appColors.divider),
-        borderRadius: AppRadius.mdAll,
-        boxShadow: AppShadows.of(theme.brightness),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(title, style: AppTextStyles.rowTitle),
-                Text(
-                  subtitle,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: context.appColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          trailing,
-        ],
-      ),
-    );
   }
 }
 
