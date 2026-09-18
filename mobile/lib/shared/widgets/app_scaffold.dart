@@ -25,24 +25,45 @@ class AppScaffold extends StatelessWidget {
       backgroundColor: backgroundColor,
       body: SafeArea(
         bottom: bottomNavigationBar == null,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: maxShellWidth),
-            child: body,
-          ),
-        ),
+        child: _CenteredWidth(child: body),
       ),
       bottomNavigationBar: bottomNavigationBar == null
           ? null
           : SafeArea(
               top: false,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: maxShellWidth),
-                  child: bottomNavigationBar,
-                ),
-              ),
+              child: _CenteredWidth(child: bottomNavigationBar!),
             ),
+    );
+  }
+}
+
+/// Caps [child] at [AppScaffold.maxShellWidth] and centers it horizontally,
+/// via symmetric padding rather than `Center`/`Align`.
+///
+/// `Center`/`Align` shrink-wrap to their child's size whenever the incoming
+/// constraints are height-unbounded (a real case here: a `go_router`
+/// `StatefulShellRoute` page can hand its content unbounded height during a
+/// branch transition) — collapsing the whole screen to its shortest child
+/// and centering *that* in the viewport instead of filling it. `Padding`
+/// only deflates the constraints it passes down, so `body` always keeps
+/// filling whatever height it's actually given, bounded or not.
+class _CenteredWidth extends StatelessWidget {
+  const _CenteredWidth({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sidePadding = constraints.maxWidth > AppScaffold.maxShellWidth
+            ? (constraints.maxWidth - AppScaffold.maxShellWidth) / 2
+            : 0.0;
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: sidePadding),
+          child: child,
+        );
+      },
     );
   }
 }
