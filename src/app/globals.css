@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  PG Owner Ease design tokens.
+  Values are HSL triplets (no hsl() wrapper) so Tailwind can compose them
+  with opacity modifiers, e.g. bg-primary/50.
+  See docs/DESIGN_SYSTEM.md for the full color system and rationale.
+*/
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;        /* #F8FAFC */
+    --foreground: 217 33% 17%;        /* #1E293B */
+
+    --card: 0 0% 100%;                /* #FFFFFF */
+    --card-foreground: 217 33% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 33% 17%;
+
+    --border: 214 32% 91%;            /* #E2E8F0 */
+    --border-strong: 213 27% 84%;     /* #CBD5E1 */
+    --input: 214 32% 91%;
+    --ring: 243 75% 59%;              /* primary-600 */
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;  /* #64748B */
+
+    --primary: 243 75% 59%;           /* #4F46E5 */
+    --primary-foreground: 0 0% 100%;
+    --primary-50: 234 89% 97%;        /* #EEF2FF */
+    --primary-100: 231 83% 94%;
+    --primary-600: 243 75% 59%;
+    --primary-700: 245 58% 51%;       /* #4338CA */
+
+    --secondary: 12 85% 62%;          /* #F2684B */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-50: 14 100% 96%;      /* #FFF1EC */
+
+    --success: 142 71% 35%;           /* #16A34A */
+    --success-foreground: 0 0% 100%;
+    --warning: 32 95% 44%;            /* #D97706 */
+    --warning-foreground: 0 0% 100%;
+    --danger: 0 73% 51%;              /* #DC2626 */
+    --danger-foreground: 0 0% 100%;
+    --info: 199 94% 40%;              /* #0284C7 */
+    --info-foreground: 0 0% 100%;
+
+    --accent: 234 89% 97%;
+    --accent-foreground: 243 75% 59%;
+
+    --radius: 12px;
+  }
+
+  .dark {
+    --background: 222 47% 7%;         /* #0B1220 */
+    --foreground: 210 40% 96%;        /* #F1F5F9 */
+
+    --card: 219 39% 12%;              /* #151E2E */
+    --card-foreground: 210 40% 96%;
+
+    --popover: 219 39% 12%;
+    --popover-foreground: 210 40% 96%;
+
+    --border: 217 23% 21%;            /* #27303F */
+    --border-strong: 215 20% 29%;     /* #3A4457 */
+    --input: 217 23% 21%;
+    --ring: 234 89% 74%;
+
+    --muted: 219 33% 15%;
+    --muted-foreground: 215 20% 65%;  /* #94A3B8 */
+
+    --primary: 234 89% 74%;           /* lighter indigo for dark-mode contrast */
+    --primary-foreground: 222 47% 7%;
+    --primary-50: 219 39% 16%;
+    --primary-100: 219 39% 20%;
+    --primary-600: 234 89% 74%;
+    --primary-700: 234 89% 80%;
+
+    --secondary: 12 90% 68%;
+    --secondary-foreground: 222 47% 7%;
+    --secondary-50: 219 39% 16%;
+
+    --success: 142 60% 45%;
+    --success-foreground: 222 47% 7%;
+    --warning: 32 90% 55%;
+    --warning-foreground: 222 47% 7%;
+    --danger: 0 70% 62%;
+    --danger-foreground: 222 47% 7%;
+    --info: 199 85% 55%;
+    --info-foreground: 222 47% 7%;
+
+    --accent: 219 39% 16%;
+    --accent-foreground: 234 89% 74%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    font-variant-numeric: tabular-nums;
+  }
+}
