@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .prop-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:16px;display:flex;flex-direction:column;gap:12px}
+    .occ-bar{height:6px;background:var(--color-neutral-100);border-radius:99px;position:relative;overflow:hidden}
+    .occ-bar-fill{position:absolute;left:0;top:0;bottom:0;background:var(--color-accent);border-radius:99px}
+    .prop-stat-row{display:flex;gap:20px;font-size:13px}
+    .prop-actions{display:flex;gap:12px;margin-top:auto;padding-top:12px;border-top:1px solid var(--color-divider)}
+    .prop-actions a{font-size:13px;font-weight:600}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);gap:10px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0;font-size:19px">Properties</h2>
+      <div class="text-muted" style="font-size:12px">{{ propCount }} properties · {{ totalBeds }} beds</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <dc-import name="RoleSwitcher" current-role="owner" hint-size="100px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div style="padding:12px 16px 0">
+    <div class="cta-card" onClick="{{ openAdd }}">
+      <div class="cta-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div style="flex:1"><div class="cta-card-title">Add property</div><div class="cta-card-sub">Set up a new PG with rooms &amp; beds</div></div>
+      <span class="cta-card-chevron">›</span>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+    <sc-for list="{{ properties }}" as="p" hint-placeholder-count="3">
+      <div class="prop-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <h3 style="margin:0;font-size:16px">{{ p.name }}</h3>
+            <div class="text-muted" style="font-size:12px">{{ p.address }}</div>
+          </div>
+          <span class="{{ p.complaintTagClass }}">{{ p.complaints }}</span>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;color:var(--color-text-secondary)">
+            <span>Occupancy</span><span style="font-weight:700;color:var(--color-text)">{{ p.occLabel }}</span>
+          </div>
+          <div class="occ-bar"><div class="occ-bar-fill" style="width:{{ p.occPct }}"></div></div>
+        </div>
+        <div class="prop-stat-row">
+          <div><div class="card-kicker" style="color:var(--color-text-muted)">Rent</div><div style="font-weight:700">{{ p.rent }}</div></div>
+          <div><div class="card-kicker" style="color:var(--color-text-muted)">Manager</div><div style="font-weight:700">{{ p.manager }}</div></div>
+        </div>
+        <div class="prop-actions">
+          <a href="{{ p.roomsHref }}">Manage rooms &amp; beds</a>
+          <a href="#" onClick="{{ p.onEdit }}" style="margin-left:auto">Edit</a>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ ownerMobileTabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:420px;max-width:92vw">
+        <div class="dialog-title">{{ dialogTitle }}</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:12px;opacity:1">
+          <div class="field">
+            <label>Property name</label>
+            <input class="input" type="text" value="{{ form.name }}" onChange="{{ setName }}"></input>
+          </div>
+          <div class="field">
+            <label>Address</label>
+            <input class="input" type="text" value="{{ form.address }}" onChange="{{ setAddress }}"></input>
+          </div>
+          <div class="field">
+            <label>Total beds</label>
+            <input class="input" type="number" value="{{ form.totalBeds }}" onChange="{{ setTotalBeds }}"></input>
+          </div>
+          <div class="field">
+            <label>Manager</label>
+            <select class="input" value="{{ form.manager }}" onChange="{{ setManager }}">
+              <option value="Unassigned">Unassigned</option>
+              <option value="Ramesh K.">Ramesh K.</option>
+              <option value="Divya S.">Divya S.</option>
+            </select>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ close }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ save }}">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAV_ICON = {
+  Overview: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Properties: 'M4 21V4h9v17M13 21V9h7v12M4 21h16M7 8h2M7 12h2M7 16h2',
+  Tenants: 'M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 8a3 3 0 1 1 0 6M22 20c0-2.8-1.9-5.1-4.5-5.8',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+class Component extends DCLogic {
+  state = {
+    theme: 'light',
+    dialogOpen: false, editingId: null,
+    form: { name: '', address: '', totalBeds: '', manager: 'Unassigned' },
+    properties: [
+      { id: 'hsr', name: 'HSR PG', address: '27th Main, HSR Layout, Bengaluru', beds: 20, occupied: 18, rentCollected: 160000, rentExpected: 180000, complaints: 2, manager: 'Ramesh K.' },
+      { id: 'kor', name: 'Koramangala PG', address: '5th Block, Koramangala, Bengaluru', beds: 18, occupied: 14, rentCollected: 120000, rentExpected: 130000, complaints: 0, manager: 'Divya S.' },
+      { id: 'ind', name: 'Indiranagar PG', address: '100ft Road, Indiranagar, Bengaluru', beds: 11, occupied: 10, rentCollected: 130000, rentExpected: 150000, complaints: 4, manager: 'Ramesh K.' },
+    ],
+  };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  openAdd = () => this.setState({ dialogOpen: true, editingId: null, form: { name: '', address: '', totalBeds: '', manager: 'Unassigned' } });
+  openEdit = (p) => this.setState({ dialogOpen: true, editingId: p.id, form: { name: p.name, address: p.address, totalBeds: String(p.beds), manager: p.manager } });
+  close = () => this.setState({ dialogOpen: false });
+  setName = (e) => this.setState(s => ({ form: { ...s.form, name: e.target.value } }));
+  setAddress = (e) => this.setState(s => ({ form: { ...s.form, address: e.target.value } }));
+  setTotalBeds = (e) => this.setState(s => ({ form: { ...s.form, totalBeds: e.target.value } }));
+  setManager = (e) => this.setState(s => ({ form: { ...s.form, manager: e.target.value } }));
+  save = () => {
+    const f = this.state.form;
+    const beds = parseInt(f.totalBeds, 10) || 0;
+    if (this.state.editingId) {
+      this.setState(s => ({
+        dialogOpen: false,
+        properties: s.properties.map(p => p.id === s.editingId ? { ...p, name: f.name, address: f.address, beds, manager: f.manager } : p),
+      }));
+    } else {
+      const id = 'p' + Date.now();
+      this.setState(s => ({
+        dialogOpen: false,
+        properties: [...s.properties, { id, name: f.name || 'New PG', address: f.address, beds, occupied: 0, rentCollected: 0, rentExpected: 0, complaints: 0, manager: f.manager }],
+      }));
+    }
+  };
+  renderVals() {
+    const s = this.state;
+    const fmtMoney = (n) => '\u20b9' + (n >= 100000 ? (n / 100000).toFixed(1) + 'L' : n.toLocaleString('en-IN'));
+    const properties = s.properties.map(p => ({
+      id: p.id, name: p.name, address: p.address,
+      occLabel: p.occupied + '/' + p.beds, occPct: p.beds ? Math.round(p.occupied / p.beds * 100) + '%' : '0%',
+      rent: fmtMoney(p.rentCollected) + ' / ' + fmtMoney(p.rentExpected), manager: p.manager,
+      complaints: p.complaints + ' open',
+      complaintTagClass: 'tag ' + (p.complaints === 0 ? 'tag-success' : p.complaints > 2 ? 'tag-error' : 'tag-warning'),
+      roomsHref: 'Rooms.dc.html?property=' + p.id,
+      onEdit: (e) => { e.preventDefault(); this.openEdit(p); },
+    }));
+    const totalBeds = s.properties.reduce((a, p) => a + p.beds, 0);
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\u{1F319}' : '\u2600\uFE0F', toggleTheme: this.toggleTheme,
+      ownerMobileTabs: [
+        { label: 'Overview', href: 'Owner Dashboard.dc.html' },
+        { label: 'Properties', href: 'Properties.dc.html', active: true },
+        { label: 'Tenants', href: 'Tenants.dc.html' },
+        { label: 'More', href: 'Settings.dc.html?role=owner' },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.active ? ' active' : ''), icon: NAV_ICON[t.label] })),
+      propCount: s.properties.length, totalBeds,
+      properties,
+      dialogOpen: s.dialogOpen, dialogTitle: s.editingId ? 'Edit property' : 'Add property',
+      form: s.form, setName: this.setName, setAddress: this.setAddress, setTotalBeds: this.setTotalBeds, setManager: this.setManager,
+      close: this.close, save: this.save, openAdd: this.openAdd,
+    };
+  }
+}
+</script>
+</body>
+</html>

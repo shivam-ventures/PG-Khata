@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .stat-grid-owner{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .cx-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);cursor:pointer;background:var(--color-surface);border:1px solid var(--color-divider);box-shadow:var(--shadow-sm);margin-bottom:8px}
+    .cx-icon{width:34px;height:34px;border-radius:var(--radius-sm);display:grid;place-items:center;flex:none;position:relative}
+    .priority-dot{position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;border:2px solid var(--color-surface)}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);gap:10px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0;font-size:19px">Complaints</h2>
+      <div class="text-muted" style="font-size:12px">Issues across your portfolio</div>
+    </div>
+    <dc-import name="RoleSwitcher" current-role="owner" hint-size="100px,36px"></dc-import>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:16px">
+    <div class="stat-grid-owner">
+      <sc-for list="{{ stats }}" as="st" hint-placeholder-count="4">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:{{ st.iconBg }};color:{{ st.iconColor }}">{{ st.icon }}</div>
+          <div class="card-kicker" style="color:var(--color-text-muted)">{{ st.label }}</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;line-height:1">{{ st.value }}</div>
+          <div class="card-meta">{{ st.sub }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <select class="input" value="{{ statusFilter }}" onChange="{{ setStatusFilter }}">
+      <option value="all">All statuses</option>
+      <option value="Reported">Reported</option>
+      <option value="In Progress">In Progress</option>
+      <option value="Resolved">Resolved</option>
+    </select>
+
+    <div>
+      <sc-for list="{{ items }}" as="c" hint-placeholder-count="5">
+        <div class="cx-row" onClick="{{ c.onOpen }}">
+          <div class="cx-icon" style="background:{{ c.iconBg }};color:{{ c.iconColor }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.icon }}"></path></svg>
+            <sc-if value="{{ c.isHighPriority }}" hint-placeholder-val="{{ false }}">
+              <div class="priority-dot" style="background:var(--color-danger)"></div>
+            </sc-if>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:14px">{{ c.title }}</div>
+            <div class="text-muted" style="font-size:12px">{{ c.property }} · {{ c.room }} · {{ c.age }}</div>
+          </div>
+          <span class="{{ c.tagClass }}">{{ c.status }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ ownerMobileTabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:420px;max-width:92vw">
+        <div class="dialog-title" style="margin-bottom:2px">{{ active.title }}</div>
+        <div class="text-muted" style="font-size:12px;margin-bottom:12px">{{ active.property }} · {{ active.room }} · {{ active.tenant }}</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:12px;opacity:1">
+          <div class="field">
+            <label>Status</label>
+            <select class="input" value="{{ form.status }}" onChange="{{ setF_status }}">
+              <option value="Reported">Reported</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Assign to</label>
+            <select class="input" value="{{ form.assignee }}" onChange="{{ setF_assignee }}">
+              <option value="Ramesh K.">Ramesh K.</option>
+              <option value="Divya S.">Divya S.</option>
+            </select>
+          </div>
+          <div class="field"><label>Note</label><input class="input" type="text" placeholder="Add an update note" value="{{ form.note }}" onChange="{{ setF_note }}"></input></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ close }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ save }}">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STATUS_CLASS = { Reported: 'tag tag-error', 'In Progress': 'tag tag-warning', Resolved: 'tag tag-success' };
+const CATEGORY_ICON = {
+  plumbing: { icon: 'M12 2s6 7 6 11a6 6 0 1 1-12 0c0-4 6-11 6-11Z', bg: 'var(--color-info-100)', color: 'var(--color-info-700)' },
+  wifi: { icon: 'M2 8.5a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0M8.5 15.5a6 6 0 0 1 7 0M12 19h.01', bg: 'var(--color-accent-100)', color: 'var(--color-accent-700)' },
+  electrical: { icon: 'M13 2 3 14h7l-1 8 11-14h-7l1-6Z', bg: 'var(--color-warning-100)', color: 'var(--color-warning-700)' },
+  other: { icon: 'M5 12h.01M12 12h.01M19 12h.01', bg: 'var(--color-neutral-100)', color: 'var(--color-text-secondary)' },
+};
+function categoryFor(title) {
+  const t = title.toLowerCase();
+  if (t.includes('geyser') || t.includes('tap') || t.includes('leak') || t.includes('window')) return CATEGORY_ICON.plumbing;
+  if (t.includes('wifi') || t.includes('internet')) return CATEGORY_ICON.wifi;
+  if (t.includes('ac') || t.includes('cooling') || t.includes('electric')) return CATEGORY_ICON.electrical;
+  return CATEGORY_ICON.other;
+}
+const NAV_ICON = {
+  Overview: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Properties: 'M4 21V4h9v17M13 21V9h7v12M4 21h16M7 8h2M7 12h2M7 16h2',
+  Tenants: 'M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 8a3 3 0 1 1 0 6M22 20c0-2.8-1.9-5.1-4.5-5.8',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+
+class Component extends DCLogic {
+  state = {
+    theme: 'light', statusFilter: 'all', dialogOpen: false, activeId: null, form: { status: 'Reported', assignee: 'Ramesh K.', note: '' },
+    complaints: [
+      { id: 1, title: 'Geyser not working', property: 'HSR PG', room: 'B-204', tenant: 'Rahul Sharma', age: '2 days open', status: 'In Progress', priority: 'High' },
+      { id: 2, title: 'Wifi down on 2nd floor', property: 'HSR PG', room: 'Floor 2', tenant: 'Multiple', age: '5 hours open', status: 'Reported', priority: 'Medium' },
+      { id: 3, title: 'Leaking tap', property: 'HSR PG', room: 'A-108', tenant: 'Ayesha Khan', age: '3 days open', status: 'Reported', priority: 'High' },
+      { id: 4, title: 'AC not cooling', property: 'Koramangala PG', room: 'G1', tenant: 'Vikas Gowda', age: '1 day open', status: 'In Progress', priority: 'Medium' },
+      { id: 5, title: 'Broken window latch', property: 'Indiranagar PG', room: 'G1', tenant: 'Priya Menon', age: 'Resolved 1 day ago', status: 'Resolved', priority: 'Low' },
+    ],
+  };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  setStatusFilter = (e) => this.setState({ statusFilter: e.target.value });
+  openItem = (c) => this.setState({ dialogOpen: true, activeId: c.id, form: { status: c.status, assignee: 'Ramesh K.', note: '' } });
+  close = () => this.setState({ dialogOpen: false });
+  setF_status = (e) => this.setState(s => ({ form: { ...s.form, status: e.target.value } }));
+  setF_assignee = (e) => this.setState(s => ({ form: { ...s.form, assignee: e.target.value } }));
+  setF_note = (e) => this.setState(s => ({ form: { ...s.form, note: e.target.value } }));
+  save = () => {
+    const f = this.state.form;
+    this.setState(s => ({ dialogOpen: false, complaints: s.complaints.map(c => c.id === s.activeId ? { ...c, status: f.status } : c) }));
+  };
+  renderVals() {
+    const s = this.state;
+    const filtered = s.complaints
+      .filter(c => s.statusFilter === 'all' || c.status === s.statusFilter)
+      .sort((a, b) => (a.priority === 'High' ? -1 : 1) - (b.priority === 'High' ? -1 : 1));
+    const active = s.complaints.find(c => c.id === s.activeId) || {};
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\u{1F319}' : '\u2600\uFE0F', toggleTheme: this.toggleTheme,
+      ownerMobileTabs: [
+        { label: 'Overview', href: 'Owner Dashboard.dc.html' }, { label: 'Properties', href: 'Properties.dc.html' },
+        { label: 'Tenants', href: 'Tenants.dc.html' }, { label: 'More', href: 'Settings.dc.html?role=owner' },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.label === 'More' ? ' active' : ''), icon: NAV_ICON[t.label] })),
+      stats: [
+        { label: 'Open', value: s.complaints.filter(c => c.status !== 'Resolved').length, sub: 'needs action', icon: '\ud83d\udccb', iconBg: 'var(--color-danger-100)', iconColor: 'var(--color-danger-700)' },
+        { label: 'High priority', value: s.complaints.filter(c => c.priority === 'High' && c.status !== 'Resolved').length, sub: 'act first', icon: '\ud83d\udd25', iconBg: 'var(--color-warning-100)', iconColor: 'var(--color-warning-700)' },
+        { label: 'Resolved', value: s.complaints.filter(c => c.status === 'Resolved').length, sub: 'this month', icon: '\u2705', iconBg: 'var(--color-success-100)', iconColor: 'var(--color-success-700)' },
+        { label: 'Overdue > 48h', value: 2, sub: 'flagged', icon: '\u23f0', iconBg: 'var(--color-accent-100)', iconColor: 'var(--color-accent-700)' },
+      ],
+      statusFilter: s.statusFilter, setStatusFilter: this.setStatusFilter,
+      items: filtered.map(c => ({
+        title: c.title, property: c.property, room: c.room, tenant: c.tenant, age: c.age, status: c.status,
+        tagClass: STATUS_CLASS[c.status], icon: categoryFor(c.title).icon, iconBg: categoryFor(c.title).bg, iconColor: categoryFor(c.title).color,
+        isHighPriority: c.priority === 'High' && c.status !== 'Resolved', onOpen: () => this.openItem(c),
+      })),
+      dialogOpen: s.dialogOpen, active, form: s.form,
+      setF_status: this.setF_status, setF_assignee: this.setF_assignee, setF_note: this.setF_note,
+      close: this.close, save: this.save,
+    };
+  }
+}
+</script>
+</body>
+</html>

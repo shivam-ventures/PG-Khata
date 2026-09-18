@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .stat-grid-owner{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .task-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:flex-start;gap:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+    .cx-icon{width:36px;height:36px;border-radius:var(--radius-sm);display:grid;place-items:center;flex:none;position:relative}
+    .priority-dot{position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;border:2px solid var(--color-surface)}
+    .pg-switch-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--color-surface-alt);border-bottom:1px solid var(--color-divider)}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="{{ hrefs.more }}" style="color:var(--color-text);text-decoration:none;font-size:18px">←</a>
+      <h2 style="margin:0;font-size:19px">Complaints</h2>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <dc-import name="RoleSwitcher" current-role="manager" hint-size="110px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div class="pg-switch-bar">
+    <dc-import name="PortfolioSwitcher" properties="{{ pgSwitcherOptions }}" current-id="{{ currentPg }}" on-select="{{ onPgSelect }}" hint-size="200px,38px"></dc-import>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:16px">
+    <div class="stat-grid-owner">
+      <sc-for list="{{ stats }}" as="st" hint-placeholder-count="3">
+        <div class="stat-card">
+          <div class="card-kicker" style="color:var(--color-text-muted)">{{ st.label }}</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;line-height:1;color:{{ st.color }}">{{ st.value }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+      <div class="text-muted" style="text-align:center;padding:32px 0;font-size:14px">No complaints for this PG. 🎉</div>
+    </sc-if>
+    <sc-for list="{{ items }}" as="c" hint-placeholder-count="3">
+      <div class="task-card" onClick="{{ c.onOpen }}">
+        <div class="cx-icon" style="background:{{ c.iconBg }};color:{{ c.iconColor }}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.icon }}"></path></svg>
+          <sc-if value="{{ c.isHighPriority }}" hint-placeholder-val="{{ false }}">
+            <div class="priority-dot" style="background:var(--color-danger)"></div>
+          </sc-if>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px">{{ c.title }}</div>
+          <div style="font-size:12px;color:var(--color-text-muted)">{{ c.room }} · {{ c.tenant }} · {{ c.age }}</div>
+          <sc-if value="{{ c.hasSubtext }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:11.5px;color:var(--color-text-secondary);margin-top:3px">{{ c.subtext }}</div>
+          </sc-if>
+        </div>
+        <span class="{{ c.tagClass }}" style="flex:none">{{ c.status }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:420px;max-width:92vw">
+        <div class="dialog-title" style="margin-bottom:2px">{{ active.title }}</div>
+        <div class="text-muted" style="font-size:12px;margin-bottom:12px">{{ active.room }} · {{ active.tenant }} · {{ active.age }} · prefers {{ active.timePref }}</div>
+
+        <sc-if value="{{ isDelegateMode }}" hint-placeholder-val="{{ true }}">
+          <div class="dialog-body" style="display:flex;flex-direction:column;gap:12px;opacity:1">
+            <div class="field">
+              <label>Who's handling this?</label>
+              <select class="input" value="{{ form.assignee }}" onChange="{{ setF_assignee }}">
+                <sc-for list="{{ assigneeOptions }}" as="op" hint-placeholder-count="5">
+                  <option value="{{ op }}">{{ op }}</option>
+                </sc-for>
+              </select>
+            </div>
+            <div class="field"><label>Note (optional)</label><textarea class="input" rows="2" placeholder="e.g. Told him to come by evening" value="{{ form.note }}" onChange="{{ setF_note }}"></textarea></div>
+            <div style="font-size:11.5px;color:var(--color-text-muted)">Ticket auto-closes in 3 days unless the tenant says it's still not fixed — no need to come back and mark it done.</div>
+          </div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" onClick="{{ close }}">Cancel</button>
+            <button class="btn btn-primary" onClick="{{ delegate }}">Delegate &amp; done</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isViewMode }}" hint-placeholder-val="{{ false }}">
+          <div class="dialog-body" style="display:flex;flex-direction:column;gap:8px;opacity:1">
+            <div style="font-size:14px;font-weight:600">{{ active.viewHeadline }}</div>
+            <div style="font-size:12.5px;color:var(--color-text-secondary)">{{ active.autoResolveText }}</div>
+          </div>
+          <div class="dialog-actions" style="justify-content:space-between">
+            <button class="btn btn-secondary" onClick="{{ toReassign }}">Reassign</button>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-secondary" onClick="{{ close }}">Close</button>
+              <sc-if value="{{ active.canResolveNow }}" hint-placeholder-val="{{ true }}">
+                <button class="btn btn-primary" onClick="{{ resolveNow }}">Mark resolved now</button>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PG_NAMES = { hsr: 'HSR PG', ind: 'Indiranagar PG' };
+const STATUS_CLASS = { Reported: 'tag tag-error', Delegated: 'tag tag-warning', Resolved: 'tag tag-success', Reopened: 'tag tag-error' };
+const ASSIGNEES = ["Self (I'll fix it)", 'Cleaner', 'Electrician', 'Plumber', 'Outside vendor'];
+const DAY = 86400000;
+const CATEGORY_ICON = {
+  plumbing: { icon: 'M12 2s6 7 6 11a6 6 0 1 1-12 0c0-4 6-11 6-11Z', bg: 'var(--color-info-100)', color: 'var(--color-info-700)' },
+  wifi: { icon: 'M2 8.5a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0M8.5 15.5a6 6 0 0 1 7 0M12 19h.01', bg: 'var(--color-accent-100)', color: 'var(--color-accent-700)' },
+  other: { icon: 'M5 12h.01M12 12h.01M19 12h.01', bg: 'var(--color-neutral-100)', color: 'var(--color-text-secondary)' },
+};
+function categoryFor(title) {
+  const t = title.toLowerCase();
+  if (t.includes('geyser') || t.includes('tap') || t.includes('leak') || t.includes('water')) return CATEGORY_ICON.plumbing;
+  if (t.includes('wifi') || t.includes('internet')) return CATEGORY_ICON.wifi;
+  return CATEGORY_ICON.other;
+}
+const PG_COMPLAINTS = {
+  hsr: [
+    { id: 1, title: 'Geyser not working', room: 'B-204', tenant: 'Rahul Sharma', age: '2 days open', status: 'Delegated', delegatedTo: 'Electrician', delegatedAt: Date.now() - 2 * DAY, autoResolveDays: 3, priority: 'High', timePref: 'Evening (4\u20138pm)' },
+    { id: 2, title: 'Wifi down on 2nd floor', room: 'Floor 2', tenant: 'Multiple tenants', age: '5 hours open', status: 'Reported', priority: 'Medium', timePref: 'Anytime' },
+    { id: 3, title: 'Leaking tap', room: 'A-108', tenant: 'Ayesha Khan', age: '3 days open', status: 'Reported', priority: 'High', timePref: 'Morning (8am\u201312pm)' },
+  ],
+  ind: [],
+};
+const NAV_ICON = {
+  Today: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Payments: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Rooms: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+function effectiveStatus(c) {
+  if (c.status === 'Delegated' && Date.now() - c.delegatedAt >= (c.autoResolveDays || 3) * DAY) return 'Resolved';
+  return c.status;
+}
+class Component extends DCLogic {
+  state = { theme: 'light', dialogOpen: false, dialogMode: 'delegate', activeId: null, form: { assignee: ASSIGNEES[0], note: '' }, overrides: {} };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  merge = (c) => ({ ...c, ...(this.state.overrides[this.pgKey(c)] || {}) });
+  pgKey = (c) => this.currentPg + '|' + c.id;
+  openItem = (pg, c) => {
+    const merged = { ...c, ...(this.state.overrides[pg + '|' + c.id] || {}) };
+    const eff = effectiveStatus(merged);
+    const mode = (eff === 'Reported' || eff === 'Reopened') ? 'delegate' : 'view';
+    this.setState({ dialogOpen: true, dialogMode: mode, activeId: pg + '|' + c.id, form: { assignee: merged.delegatedTo || ASSIGNEES[0], note: '' } });
+  };
+  close = () => this.setState({ dialogOpen: false });
+  toReassign = () => this.setState({ dialogMode: 'delegate' });
+  setF_assignee = (e) => this.setState(s => ({ form: { ...s.form, assignee: e.target.value } }));
+  setF_note = (e) => this.setState(s => ({ form: { ...s.form, note: e.target.value } }));
+  delegate = () => {
+    const f = this.state.form;
+    this.setState(s => ({ dialogOpen: false, overrides: { ...s.overrides, [s.activeId]: { status: 'Delegated', delegatedTo: f.assignee, delegatedAt: Date.now(), note: f.note } } }));
+  };
+  resolveNow = () => {
+    this.setState(s => ({ dialogOpen: false, overrides: { ...s.overrides, [s.activeId]: { ...(s.overrides[s.activeId] || {}), status: 'Resolved' } } }));
+  };
+  renderVals() {
+    const s = this.state;
+    const currentPg = ['hsr', 'ind'].includes(new URLSearchParams(window.location.search).get('pg')) ? new URLSearchParams(window.location.search).get('pg') : 'hsr';
+    this.currentPg = currentPg;
+    const q = '?pg=' + currentPg;
+    const merged = PG_COMPLAINTS[currentPg].map(c => ({ ...c, ...(s.overrides[currentPg + '|' + c.id] || {}) }));
+    const list = merged.map(c => ({ ...c, eff: effectiveStatus(c) })).sort((a, b) => (a.priority === 'High' ? -1 : 1) - (b.priority === 'High' ? -1 : 1));
+    const activeRaw = merged.find(c => currentPg + '|' + c.id === s.activeId) || {};
+    const activeEff = effectiveStatus(activeRaw);
+    const daysLeft = activeRaw.delegatedAt ? Math.max(0, Math.ceil((activeRaw.autoResolveDays || 3) - (Date.now() - activeRaw.delegatedAt) / DAY)) : 0;
+    const active = {
+      ...activeRaw,
+      viewHeadline: activeEff === 'Resolved' ? 'Resolved' : 'Delegated to ' + activeRaw.delegatedTo,
+      autoResolveText: activeEff === 'Resolved' ? 'Closed automatically \u2014 tenant didn\u2019t report it again.' : ('Auto-resolves in ' + daysLeft + 'd unless the tenant says it\u2019s still not fixed.'),
+      canResolveNow: activeEff === 'Delegated',
+    };
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\ud83c\udf19' : '\u2600\ufe0f', toggleTheme: this.toggleTheme,
+      currentPg, onPgSelect: (id) => { window.location.href = 'Manager Complaints.dc.html?pg=' + id; },
+      pgSwitcherOptions: Object.keys(PG_NAMES).map(id => ({ id, name: PG_NAMES[id] })),
+      hrefs: { more: 'Manager More.dc.html' + q },
+      stats: [
+        { label: 'Open', value: list.filter(c => c.eff !== 'Resolved').length, color: 'var(--color-danger-700)' },
+        { label: 'High priority', value: list.filter(c => c.priority === 'High' && c.eff !== 'Resolved').length, color: 'var(--color-warning-700)' },
+      ],
+      isEmpty: list.length === 0,
+      items: list.map(c => {
+        let subtext = '', hasSubtext = false;
+        if (c.eff === 'Delegated') {
+          const dl = Math.max(0, Math.ceil((c.autoResolveDays || 3) - (Date.now() - c.delegatedAt) / DAY));
+          subtext = '\u2192 ' + c.delegatedTo + ' \u00b7 auto-resolves in ' + dl + 'd'; hasSubtext = true;
+        } else if (c.eff === 'Resolved' && c.status === 'Delegated') {
+          subtext = 'Auto-resolved \u2014 no complaint from tenant'; hasSubtext = true;
+        } else if (c.eff === 'Reopened') {
+          subtext = 'Tenant says it\u2019s still not fixed'; hasSubtext = true;
+        }
+        return {
+          title: c.title, room: c.room, tenant: c.tenant, age: c.age, status: c.eff, tagClass: STATUS_CLASS[c.eff],
+          icon: categoryFor(c.title).icon, iconBg: categoryFor(c.title).bg, iconColor: categoryFor(c.title).color,
+          isHighPriority: c.priority === 'High' && c.eff !== 'Resolved', hasSubtext, subtext,
+          onOpen: () => this.openItem(currentPg, c),
+        };
+      }),
+      dialogOpen: s.dialogOpen, isDelegateMode: s.dialogMode === 'delegate', isViewMode: s.dialogMode === 'view',
+      active, form: s.form, assigneeOptions: ASSIGNEES,
+      setF_assignee: this.setF_assignee, setF_note: this.setF_note, close: this.close, delegate: this.delegate, resolveNow: this.resolveNow, toReassign: this.toReassign,
+      tabs: [
+        { label: 'Today', href: 'Manager Today.dc.html' + q }, { label: 'Payments', href: 'Manager Payments.dc.html' + q },
+        { label: 'Rooms', href: 'Manager Rooms.dc.html' + q }, { label: 'More', href: 'Manager More.dc.html' + q },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.label === 'More' ? ' active' : ''), icon: NAV_ICON[t.label] })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

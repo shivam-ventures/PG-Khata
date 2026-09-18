@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .stat-grid-owner{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .pay-toolbar{display:flex;flex-direction:column;gap:8px}
+    .list-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:10px;padding:12px 14px}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);gap:10px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0;font-size:19px">Payments</h2>
+      <div class="text-muted" style="font-size:12px">Rent ledger across your portfolio</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <dc-import name="RoleSwitcher" current-role="owner" hint-size="100px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div style="padding:12px 16px 0">
+    <div class="cta-card" onClick="{{ openAdd }}">
+      <div class="cta-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div style="flex:1"><div class="cta-card-title">Record payment</div><div class="cta-card-sub">Log a cash, UPI or bank transfer</div></div>
+      <span class="cta-card-chevron">›</span>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:18px">
+    <div class="stat-grid-owner">
+      <sc-for list="{{ stats }}" as="st" hint-placeholder-count="4">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:{{ st.iconBg }};color:{{ st.iconColor }}">{{ st.icon }}</div>
+          <div class="card-kicker" style="color:var(--color-text-muted)">{{ st.label }}</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;line-height:1">{{ st.value }}</div>
+          <div class="card-meta">{{ st.sub }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="pay-toolbar">
+      <select class="input" value="{{ propertyFilter }}" onChange="{{ setPropertyFilter }}">
+        <option value="all">All properties</option>
+        <sc-for list="{{ propertyNames }}" as="pn" hint-placeholder-count="3">
+          <option value="{{ pn }}">{{ pn }}</option>
+        </sc-for>
+      </select>
+      <select class="input" value="{{ statusFilter }}" onChange="{{ setStatusFilter }}">
+        <option value="all">All statuses</option>
+        <option value="Paid">Paid</option>
+        <option value="Pending">Pending</option>
+        <option value="Overdue">Overdue</option>
+      </select>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+        <div class="list-card">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:14px">{{ r.tenant }}</div>
+            <div style="font-size:12px;color:var(--color-text-muted)">{{ r.property }} · {{ r.room }} · due {{ r.due }}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:14px">{{ r.amount }}</div>
+            <span class="{{ r.tagClass }}">{{ r.status }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ ownerMobileTabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:420px;max-width:92vw">
+        <div class="dialog-title">Record payment</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:12px;opacity:1">
+          <div class="field">
+            <label>Tenant</label>
+            <select class="input" value="{{ form.tenant }}" onChange="{{ setF_tenant }}">
+              <sc-for list="{{ tenantNames }}" as="tn" hint-placeholder-count="5">
+                <option value="{{ tn }}">{{ tn }}</option>
+              </sc-for>
+            </select>
+          </div>
+          <div class="field"><label>Amount</label><input class="input" type="number" value="{{ form.amount }}" onChange="{{ setF_amount }}"></input></div>
+          <div class="field">
+            <label>Method</label>
+            <select class="input" value="{{ form.method }}" onChange="{{ setF_method }}">
+              <option value="UPI">UPI</option>
+              <option value="Cash">Cash</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+          </div>
+          <div class="field"><label>Date</label><input class="input" type="date" value="{{ form.date }}" onChange="{{ setF_date }}"></input></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ close }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ save }}">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STATUS_CLASS = { Paid: 'tag tag-success', Pending: 'tag tag-warning', Overdue: 'tag tag-error' };
+const NAV_ICON = {
+  Overview: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Properties: 'M4 21V4h9v17M13 21V9h7v12M4 21h16M7 8h2M7 12h2M7 16h2',
+  Tenants: 'M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 8a3 3 0 1 1 0 6M22 20c0-2.8-1.9-5.1-4.5-5.8',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+
+class Component extends DCLogic {
+  state = {
+    theme: 'light', propertyFilter: 'all', statusFilter: 'all', dialogOpen: false,
+    form: { tenant: 'Rahul Sharma', amount: '', method: 'UPI', date: '' },
+    rows: [
+      { tenant: 'Rahul Sharma', property: 'HSR PG', room: 'B-204', amount: 8500, due: '2026-09-28', method: '\u2014', status: 'Pending' },
+      { tenant: 'Ayesha Khan', property: 'HSR PG', room: 'A-108', amount: 9000, due: '2026-09-25', method: '\u2014', status: 'Overdue' },
+      { tenant: 'Vikram Rao', property: 'HSR PG', room: 'C-301', amount: 7500, due: '2026-09-05', method: 'UPI', status: 'Paid' },
+      { tenant: 'Vikas Gowda', property: 'Koramangala PG', room: 'G1-A', amount: 8000, due: '2026-09-03', method: 'UPI', status: 'Paid' },
+      { tenant: 'Rahul Jain', property: 'Koramangala PG', room: 'G1-B', amount: 8000, due: '2026-09-28', method: '\u2014', status: 'Pending' },
+      { tenant: 'Priya Menon', property: 'Indiranagar PG', room: 'G1-A', amount: 12000, due: '2026-09-02', method: 'Bank Transfer', status: 'Paid' },
+    ],
+  };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  setPropertyFilter = (e) => this.setState({ propertyFilter: e.target.value });
+  setStatusFilter = (e) => this.setState({ statusFilter: e.target.value });
+  openAdd = () => this.setState({ dialogOpen: true, form: { tenant: 'Rahul Sharma', amount: '', method: 'UPI', date: '' } });
+  close = () => this.setState({ dialogOpen: false });
+  setF_tenant = (e) => this.setState(s => ({ form: { ...s.form, tenant: e.target.value } }));
+  setF_amount = (e) => this.setState(s => ({ form: { ...s.form, amount: e.target.value } }));
+  setF_method = (e) => this.setState(s => ({ form: { ...s.form, method: e.target.value } }));
+  setF_date = (e) => this.setState(s => ({ form: { ...s.form, date: e.target.value } }));
+  save = () => {
+    const f = this.state.form;
+    this.setState(s => ({
+      dialogOpen: false,
+      rows: [{ tenant: f.tenant, property: 'HSR PG', room: '\u2014', amount: parseInt(f.amount, 10) || 0, due: f.date || '\u2014', method: f.method, status: 'Paid' }, ...s.rows],
+    }));
+  };
+  renderVals() {
+    const s = this.state;
+    const filtered = s.rows.filter(r => (s.propertyFilter === 'all' || r.property === s.propertyFilter) && (s.statusFilter === 'all' || r.status === s.statusFilter));
+    const collected = s.rows.filter(r => r.status === 'Paid').reduce((a, r) => a + r.amount, 0);
+    const pending = s.rows.filter(r => r.status === 'Pending').reduce((a, r) => a + r.amount, 0);
+    const overdue = s.rows.filter(r => r.status === 'Overdue').reduce((a, r) => a + r.amount, 0);
+    const fmt = (n) => '\u20b9' + (n >= 100000 ? (n / 100000).toFixed(1) + 'L' : n.toLocaleString('en-IN'));
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\u{1F319}' : '\u2600\uFE0F', toggleTheme: this.toggleTheme,
+      ownerMobileTabs: [
+        { label: 'Overview', href: 'Owner Dashboard.dc.html' }, { label: 'Properties', href: 'Properties.dc.html' },
+        { label: 'Tenants', href: 'Tenants.dc.html' }, { label: 'More', href: 'Settings.dc.html?role=owner' },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.label === 'More' ? ' active' : ''), icon: NAV_ICON[t.label] })),
+      stats: [
+        { label: 'Collected', value: fmt(collected), sub: 'this month', icon: '\u2705', iconBg: 'var(--color-success-100)', iconColor: 'var(--color-success-700)' },
+        { label: 'Pending', value: fmt(pending), sub: s.rows.filter(r => r.status === 'Pending').length + ' tenants', icon: '\u23f3', iconBg: 'var(--color-warning-100)', iconColor: 'var(--color-warning-700)' },
+        { label: 'Overdue', value: fmt(overdue), sub: s.rows.filter(r => r.status === 'Overdue').length + ' tenants', icon: '\u26a0\ufe0f', iconBg: 'var(--color-danger-100)', iconColor: 'var(--color-danger-700)' },
+        { label: 'Collection rate', value: Math.round(collected / (collected + pending + overdue) * 100) + '%', sub: 'of expected', icon: '\ud83d\udcca', iconBg: 'var(--color-accent-100)', iconColor: 'var(--color-accent-700)' },
+      ],
+      propertyFilter: s.propertyFilter, setPropertyFilter: this.setPropertyFilter,
+      propertyNames: ['HSR PG', 'Koramangala PG', 'Indiranagar PG'],
+      statusFilter: s.statusFilter, setStatusFilter: this.setStatusFilter,
+      rows: filtered.map(r => ({
+        tenant: r.tenant, property: r.property, room: r.room, amount: fmt(r.amount), due: r.due,
+        status: r.status, tagClass: STATUS_CLASS[r.status],
+      })),
+      dialogOpen: s.dialogOpen, form: s.form, tenantNames: ['Rahul Sharma', 'Ayesha Khan', 'Vikram Rao', 'Vikas Gowda', 'Rahul Jain', 'Priya Menon'],
+      setF_tenant: this.setF_tenant, setF_amount: this.setF_amount, setF_method: this.setF_method, setF_date: this.setF_date,
+      openAdd: this.openAdd, close: this.close, save: this.save,
+    };
+  }
+}
+</script>
+</body>
+</html>

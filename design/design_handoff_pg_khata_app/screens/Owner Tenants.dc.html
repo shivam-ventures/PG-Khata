@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .tenants-toolbar{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+    .list-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px}
+    .pending-card{background:var(--color-info-100);border:1px solid color-mix(in srgb, var(--color-info) 25%, transparent);border-radius:var(--radius-md);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);gap:10px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0;font-size:19px">Tenants</h2>
+      <div class="text-muted" style="font-size:12px">{{ tenantCount }} across your portfolio</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <dc-import name="RoleSwitcher" current-role="owner" hint-size="100px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div style="padding:12px 16px 0">
+    <div class="cta-card" onClick="{{ openAdd }}">
+      <div class="cta-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div style="flex:1"><div class="cta-card-title">Add tenant</div><div class="cta-card-sub">Manually add someone with a known bed &amp; rent</div></div>
+      <span class="cta-card-chevron">›</span>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px">
+    <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:16px">
+        <h6 style="margin:0 0 8px;color:var(--color-info-700)">Self-registered — needs a bed</h6>
+        <sc-for list="{{ pending }}" as="p" hint-placeholder-count="1">
+          <div class="pending-card">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:14px">{{ p.name }}</div>
+              <div style="font-size:12px;color:var(--color-text-muted)">{{ p.property }} · {{ p.phone }}</div>
+            </div>
+            <button class="btn btn-primary" style="padding:7px 14px;font-size:12px" onClick="{{ p.onAssign }}">Assign</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <div class="tenants-toolbar">
+      <input class="input" type="text" placeholder="Search by name or phone" value="{{ search }}" onChange="{{ setSearch }}"></input>
+      <select class="input" value="{{ propertyFilter }}" onChange="{{ setPropertyFilter }}">
+        <option value="all">All properties</option>
+        <sc-for list="{{ propertyNames }}" as="pn" hint-placeholder-count="3">
+          <option value="{{ pn }}">{{ pn }}</option>
+        </sc-for>
+      </select>
+    </div>
+
+    <sc-for list="{{ tenants }}" as="t" hint-placeholder-count="5">
+      <div class="list-card">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px">{{ t.name }}</div>
+          <div style="font-size:12px;color:var(--color-text-muted)">{{ t.property }} · {{ t.roomBed }} · {{ t.rent }}</div>
+        </div>
+        <span class="{{ t.statusTagClass }}">{{ t.status }}</span>
+        <sc-if value="{{ t.canMoveOut }}" hint-placeholder-val="{{ false }}">
+          <button class="row-kebab" onClick="{{ t.onMoveOut }}" title="More actions">⋮</button>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ moveOutOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:360px;max-width:92vw">
+        <div class="dialog-title">Mark as moved out?</div>
+        <div class="dialog-body" style="opacity:1;font-size:14px">
+          {{ moveOutName }}'s bed will be freed and their status set to Vacated. This can't be easily undone.
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ closeMoveOut }}">Cancel</button>
+          <button class="btn btn-primary" style="background:var(--color-danger);border-color:var(--color-danger)" onClick="{{ confirmMoveOut }}">Move out</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ ownerMobileTabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:440px;max-width:92vw;max-height:88vh;overflow:auto">
+        <div class="dialog-title">{{ dialogTitle }}</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:12px;opacity:1">
+          <sc-if value="{{ isAssignMode }}" hint-placeholder-val="{{ false }}">
+            <div class="field"><label>Full name</label><div class="input" style="background:var(--color-surface-alt)">{{ form.name }}</div></div>
+          </sc-if>
+          <sc-if value="{{ !isAssignMode }}" hint-placeholder-val="{{ true }}">
+            <div class="field"><label>Full name</label><input class="input" type="text" value="{{ form.name }}" onChange="{{ setF_name }}"></input></div>
+          </sc-if>
+          <div class="field"><label>Phone</label><input class="input" type="text" value="{{ form.phone }}" onChange="{{ setF_phone }}"></input></div>
+          <div class="field">
+            <label>Property</label>
+            <select class="input" value="{{ form.property }}" onChange="{{ setF_property }}">
+              <sc-for list="{{ propertyNames }}" as="pn" hint-placeholder-count="3">
+                <option value="{{ pn }}">{{ pn }}</option>
+              </sc-for>
+            </select>
+          </div>
+          <div class="field"><label>Room / Bed</label><input class="input" type="text" placeholder="e.g. 101 - B" value="{{ form.roomBed }}" onChange="{{ setF_roomBed }}"></input></div>
+          <div class="field"><label>Monthly rent</label><input class="input" type="number" value="{{ form.rent }}" onChange="{{ setF_rent }}"></input></div>
+          <div class="field"><label>Joining date</label><input class="input" type="date" value="{{ form.joined }}" onChange="{{ setF_joined }}"></input></div>
+          <div class="field">
+            <label>Status</label>
+            <select class="input" value="{{ form.status }}" onChange="{{ setF_status }}">
+              <option value="Active">Active</option>
+              <option value="Notice period">Notice period</option>
+              <option value="Vacated">Vacated</option>
+            </select>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ close }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ save }}">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const EMPTY_FORM = { name: '', phone: '', property: 'HSR PG', roomBed: '', rent: '', joined: '', status: 'Active' };
+const STATUS_CLASS = { Active: 'tag tag-success', 'Notice period': 'tag tag-warning', Vacated: 'tag tag-neutral' };
+const NAV_ICON = {
+  Overview: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Properties: 'M4 21V4h9v17M13 21V9h7v12M4 21h16M7 8h2M7 12h2M7 16h2',
+  Tenants: 'M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 8a3 3 0 1 1 0 6M22 20c0-2.8-1.9-5.1-4.5-5.8',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+
+class Component extends DCLogic {
+  state = {
+    theme: 'light', search: '', propertyFilter: 'all', dialogOpen: false, mode: 'add', editingId: null, form: { ...EMPTY_FORM }, assignedIds: {},
+    moveOutOpen: false, moveOutId: null,
+    tenants: [
+      { id: 1, name: 'Ravi Kumar', phone: '+91 98765 43210', property: 'HSR PG', roomBed: '101 - A', rent: 6500, joined: '2025-06-01', status: 'Active' },
+      { id: 2, name: 'Amit Shah', phone: '+91 98765 11122', property: 'HSR PG', roomBed: '101 - B', rent: 6500, joined: '2025-07-15', status: 'Active' },
+      { id: 3, name: 'Suresh Naik', phone: '+91 90000 22233', property: 'HSR PG', roomBed: '102 - A', rent: 7500, joined: '2024-11-10', status: 'Notice period' },
+      { id: 4, name: 'Vikas Gowda', phone: '+91 99887 77661', property: 'Koramangala PG', roomBed: 'G1 - A', rent: 8000, joined: '2025-02-20', status: 'Active' },
+      { id: 5, name: 'Priya Menon', phone: '+91 98123 45566', property: 'Indiranagar PG', roomBed: 'G1 - A', rent: 12000, joined: '2025-01-05', status: 'Active' },
+    ],
+    pending: [
+      { id: 'p1', name: 'Karthik Iyer', phone: '+91 90112 33445', property: 'HSR PG' },
+    ],
+  };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  setSearch = (e) => this.setState({ search: e.target.value });
+  setPropertyFilter = (e) => this.setState({ propertyFilter: e.target.value });
+  openAdd = () => this.setState({ dialogOpen: true, mode: 'add', editingId: null, form: { ...EMPTY_FORM } });
+  openAssign = (p) => this.setState({ dialogOpen: true, mode: 'assign', assignId: p.id, form: { ...EMPTY_FORM, name: p.name, phone: p.phone, property: p.property } });
+  close = () => this.setState({ dialogOpen: false });
+  setF_name = (e) => this.setState(s => ({ form: { ...s.form, name: e.target.value } }));
+  setF_phone = (e) => this.setState(s => ({ form: { ...s.form, phone: e.target.value } }));
+  setF_property = (e) => this.setState(s => ({ form: { ...s.form, property: e.target.value } }));
+  setF_roomBed = (e) => this.setState(s => ({ form: { ...s.form, roomBed: e.target.value } }));
+  setF_rent = (e) => this.setState(s => ({ form: { ...s.form, rent: e.target.value } }));
+  setF_joined = (e) => this.setState(s => ({ form: { ...s.form, joined: e.target.value } }));
+  setF_status = (e) => this.setState(s => ({ form: { ...s.form, status: e.target.value } }));
+  openMoveOut = (t) => this.setState({ moveOutOpen: true, moveOutId: t.id });
+  closeMoveOut = () => this.setState({ moveOutOpen: false });
+  confirmMoveOut = () => this.setState(s => ({
+    moveOutOpen: false,
+    tenants: s.tenants.map(t => t.id === s.moveOutId ? { ...t, status: 'Vacated', roomBed: t.roomBed + ' (freed)' } : t),
+  }));
+  save = () => {
+    const f = this.state.form;
+    const rec = { name: f.name, phone: f.phone, property: f.property, roomBed: f.roomBed, rent: parseInt(f.rent, 10) || 0, joined: f.joined, status: f.status };
+    this.setState(s => ({
+      dialogOpen: false,
+      assignedIds: s.mode === 'assign' ? { ...s.assignedIds, [s.assignId]: true } : s.assignedIds,
+      tenants: s.editingId
+        ? s.tenants.map(t => t.id === s.editingId ? { ...t, ...rec } : t)
+        : [...s.tenants, { id: Date.now(), ...rec }],
+    }));
+  };
+  renderVals() {
+    const s = this.state;
+    const q = s.search.trim().toLowerCase();
+    const filtered = s.tenants.filter(t =>
+      (s.propertyFilter === 'all' || t.property === s.propertyFilter) &&
+      (!q || t.name.toLowerCase().includes(q) || t.phone.includes(q))
+    );
+    const propertyNames = ['HSR PG', 'Koramangala PG', 'Indiranagar PG'];
+    const pending = s.pending.filter(p => !s.assignedIds[p.id]);
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\u{1F319}' : '\u2600\uFE0F', toggleTheme: this.toggleTheme,
+      ownerMobileTabs: [
+        { label: 'Overview', href: 'Owner Dashboard.dc.html' },
+        { label: 'Properties', href: 'Properties.dc.html' },
+        { label: 'Tenants', href: 'Tenants.dc.html', active: true },
+        { label: 'More', href: 'Settings.dc.html?role=owner' },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.active ? ' active' : ''), icon: NAV_ICON[t.label] })),
+      tenantCount: s.tenants.length, search: s.search, setSearch: this.setSearch,
+      propertyFilter: s.propertyFilter, setPropertyFilter: this.setPropertyFilter, propertyNames,
+      hasPending: pending.length > 0, pending: pending.map(p => ({ ...p, onAssign: () => this.openAssign(p) })),
+      tenants: filtered.map(t => ({
+        name: t.name, property: t.property, roomBed: t.roomBed,
+        rent: '\u20b9' + t.rent.toLocaleString('en-IN'), status: t.status,
+        statusTagClass: STATUS_CLASS[t.status] || 'tag tag-neutral',
+        canMoveOut: t.status === 'Active' || t.status === 'Notice period',
+        onMoveOut: () => this.openMoveOut(t),
+      })),
+      moveOutOpen: s.moveOutOpen, moveOutName: (s.tenants.find(t => t.id === s.moveOutId) || {}).name,
+      closeMoveOut: this.closeMoveOut, confirmMoveOut: this.confirmMoveOut,
+      dialogOpen: s.dialogOpen, isAssignMode: s.mode === 'assign', dialogTitle: s.mode === 'assign' ? 'Assign bed & rent' : (s.editingId ? 'Edit tenant' : 'Add tenant'),
+      form: s.form,
+      setF_name: this.setF_name, setF_phone: this.setF_phone, setF_property: this.setF_property,
+      setF_roomBed: this.setF_roomBed, setF_rent: this.setF_rent, setF_joined: this.setF_joined, setF_status: this.setF_status,
+      close: this.close, save: this.save, openAdd: this.openAdd,
+    };
+  }
+}
+</script>
+</body>
+</html>

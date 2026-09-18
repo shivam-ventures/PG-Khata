@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    .rs-wrap{position:relative;font-family:var(--font-body)}
+  </style>
+</helmet>
+<div class="rs-wrap">
+  <div class="role-pill" onClick="{{ toggle }}">
+    <span>{{ icon }}</span>
+    <span>{{ label }}</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"></path></svg>
+  </div>
+  <sc-if value="{{ isOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="role-menu">
+      <div class="text-muted" style="padding:10px 14px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Preview as</div>
+      <sc-for list="{{ items }}" as="it" hint-placeholder-count="3">
+        <a class="{{ it.cls }}" href="{{ it.href }}" style="text-decoration:none">
+          <span>{{ it.icon }}</span><span>{{ it.label }}</span>
+        </a>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:160,&quot;height&quot;:40},&quot;currentRole&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;owner&quot;,&quot;options&quot;:[&quot;owner&quot;,&quot;manager&quot;,&quot;tenant&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+const ROLES = [
+  { id: 'owner', label: 'Owner', icon: '\u{1F3E2}', href: 'Owner Dashboard.dc.html' },
+  { id: 'manager', label: 'Manager', icon: '\u{1F9FE}', href: 'Manager Today.dc.html' },
+  { id: 'tenant', label: 'Tenant', icon: '\u{1F464}', href: 'Tenant Home.dc.html' },
+];
+
+class Component extends DCLogic {
+  state = { open: false };
+  toggle = () => this.setState(s => ({ open: !s.open }));
+  renderVals() {
+    const role = this.props.currentRole || 'owner';
+    const current = ROLES.find(r => r.id === role) || ROLES[0];
+    return {
+      isOpen: this.state.open, icon: current.icon, label: current.label, toggle: this.toggle,
+      items: ROLES.map(r => ({ label: r.label, icon: r.icon, href: r.href, cls: 'role-menu-item' + (r.id === role ? ' active' : '') })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

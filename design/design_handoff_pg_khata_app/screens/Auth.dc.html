@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .otp-box{width:44px;height:52px;text-align:center;font-size:20px;font-family:var(--font-heading);font-weight:800}
+    .role-card{border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;text-align:left;background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-sm)}
+    .role-card:hover{border-color:var(--color-accent-300)}
+    .role-card.selected{border-color:var(--color-accent);background:var(--color-accent-100)}
+    .role-icon{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:var(--radius-sm);background:var(--color-surface-alt);color:var(--color-text-secondary)}
+    .role-card.selected .role-icon{background:var(--color-accent);color:#fff}
+    .role-check{margin-left:auto;width:20px;height:20px;flex:none;border:1.5px solid var(--color-divider);border-radius:50%;display:grid;place-items:center;color:var(--color-bg)}
+    .role-card.selected .role-check{background:var(--color-accent);border-color:var(--color-accent)}
+    .btn-primary:disabled{background:var(--color-neutral-300);color:var(--color-neutral-600)}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+  <button class="theme-toggle" style="position:fixed;top:16px;right:16px" onClick="{{ toggleTheme }}">{{ themeLabel }}</button>
+
+  <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:28px;height:28px;background:var(--color-accent);border-radius:8px"></div>
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:18px">PG Khata</div>
+    </div>
+
+    <sc-if value="{{ isPhoneStep }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <h2 style="margin:0">Enter your phone number</h2>
+        <p class="text-muted" style="margin:0">We'll send a one-time code. No passwords.</p>
+        <div class="field">
+          <label>Phone number</label>
+          <div style="display:flex;gap:8px">
+            <div class="input" style="width:56px;text-align:center;flex:none">+91</div>
+            <input class="input" type="tel" placeholder="98765 43210" value="{{ phone }}" onChange="{{ onPhoneChange }}"></input>
+          </div>
+        </div>
+        <sc-if value="{{ phoneError }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;color:var(--color-danger)">{{ phoneError }}</div>
+        </sc-if>
+        <button class="btn btn-primary btn-block" style="justify-content:center" onClick="{{ sendOtp }}">Send OTP</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isOtpStep }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <button class="btn btn-ghost" style="padding:0;align-self:flex-start" onClick="{{ backToPhone }}">← Change number</button>
+        <h2 style="margin:0">Enter the code</h2>
+        <p class="text-muted" style="margin:0">Sent to +91 {{ phone }} via SMS.</p>
+
+        <sc-if value="{{ isNetworkError }}" hint-placeholder-val="{{ false }}">
+          <div class="card" style="background:var(--color-danger-100);gap:4px">
+            <div style="font-weight:800;color:var(--color-danger-700)">Couldn't reach the server</div>
+            <div style="font-size:13px;opacity:.85">Check your connection and try again.</div>
+            <button class="btn btn-secondary" style="margin-top:8px;align-self:flex-start" onClick="{{ retryNetwork }}">Retry</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isRateLimited }}" hint-placeholder-val="{{ false }}">
+          <div class="card" style="background:var(--color-warning-100);gap:4px">
+            <div style="font-weight:800;color:var(--color-warning-700)">Too many attempts</div>
+            <div style="font-size:13px;opacity:.85">Please wait 2 minutes before requesting another code.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showOtpInputs }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ otpDigits }}" as="d" hint-placeholder-count="6">
+              <input class="input otp-box" maxLength="1" value="{{ d.value }}" onChange="{{ d.onChange }}"></input>
+            </sc-for>
+          </div>
+          <sc-if value="{{ isWrongOtp }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:var(--color-danger)">That code isn't right. {{ attemptsLeft }} attempts left.</div>
+          </sc-if>
+          <sc-if value="{{ isExpiredOtp }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:var(--color-warning-700)">This code expired. Request a new one.</div>
+          </sc-if>
+          <button class="btn btn-primary btn-block" style="justify-content:center" onClick="{{ verifyOtp }}">Verify</button>
+          <div style="font-size:13px;text-align:center;color:var(--color-text-muted)">
+            Didn't get it? <a href="#" onClick="{{ resendOtp }}">Resend code</a> {{ resendCountdown }}
+          </div>
+        </sc-if>
+
+        <div class="hr" style="margin:8px 0"></div>
+        <div style="font-size:11px;color:var(--color-text-muted)">Preview state (for review only)</div>
+        <div class="seg">
+          <sc-for list="{{ simStates }}" as="s" hint-placeholder-count="5">
+            <label class="seg-opt"><input type="radio" name="sim" checked="{{ s.checked }}" onChange="{{ s.onSelect }}"></input><span class="dot" style="display:none"></span>{{ s.label }}</label>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isRoleStep }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-if value="{{ hasInvite }}" hint-placeholder-val="{{ false }}">
+          <div class="card" style="background:var(--color-success-100);gap:4px">
+            <div style="font-weight:800;color:var(--color-success-700)">You're joining {{ invitePgName }}</div>
+            <div style="font-size:13px;opacity:.85">Room {{ inviteRoom }}, Bed {{ inviteBed }} — reserved for you. Just confirm your name below.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ !hasInvite }}" hint-placeholder-val="{{ true }}">
+          <h2 style="margin:0">Welcome. What's your role?</h2>
+          <p class="text-muted" style="margin:0">This decides what you'll see next — you can't be all three.</p>
+          <sc-for list="{{ roles }}" as="r" hint-placeholder-count="3">
+            <button class="{{ r.cardClass }}" onClick="{{ r.onSelect }}">
+              <div class="role-icon" dangerouslySetInnerHTML="{{ r.icon }}"></div>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:16px">{{ r.title }}</div>
+                <div style="font-size:12px;opacity:.75">{{ r.subtitle }}</div>
+              </div>
+              <div class="role-check">{{ r.checkMark }}</div>
+            </button>
+          </sc-for>
+        </sc-if>
+
+        <sc-if value="{{ isJoinStep }}" hint-placeholder-val="{{ false }}">
+          <div class="field" style="margin-top:8px">
+            <label>{{ joinLabel }}</label>
+            <input class="input" placeholder="{{ joinPlaceholder }}" value="{{ joinValue }}" onChange="{{ onJoinChange }}"></input>
+          </div>
+          <div class="field">
+            <label>Your name</label>
+            <input class="input" placeholder="Full name" value="{{ name }}" onChange="{{ onNameChange }}"></input>
+          </div>
+          <sc-if value="{{ isTenantNoCode }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:var(--color-text-muted);background:var(--color-info-100);padding:10px 12px;border-radius:var(--radius-sm)">
+              No code? You'll still show up in your PG's tenant list — your manager or owner just needs to assign your room and rent afterwards.
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ hasInvite }}" hint-placeholder-val="{{ false }}">
+          <div class="field">
+            <label>Your name</label>
+            <input class="input" placeholder="Full name" value="{{ name }}" onChange="{{ onNameChange }}"></input>
+          </div>
+        </sc-if>
+
+        <button class="btn btn-primary btn-block" style="justify-content:center" disabled="{{ !canContinue }}" onClick="{{ finishSignup }}">Continue</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+      <div class="card" style="background:var(--color-success-100);gap:6px">
+        <div style="font-weight:800;color:var(--color-success-700)">You're in.</div>
+        <div style="font-size:13px;opacity:.85">Taking you to your {{ selectedRoleLabel }} dashboard\u2026</div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    theme: 'light', step: 'phone', phone: '', phoneError: null,
+    otp: ['', '', '', '', '', ''], simState: 'sent', attemptsLeft: 3,
+    resendSeconds: 0, role: null, joinValue: '', name: '',
+  };
+  invite = (() => {
+    const raw = new URLSearchParams(window.location.search).get('invite');
+    if (!raw) return null;
+    const [pgId, room, bed] = raw.split('-');
+    const names = { hsr: 'HSR PG', kor: 'Koramangala PG', ind: 'Indiranagar PG' };
+    if (!names[pgId]) return null;
+    return { pgId, pgName: names[pgId], room, bed };
+  })();
+
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  onPhoneChange = (e) => this.setState({ phone: e.target.value.replace(/\D/g, '').slice(0, 10), phoneError: null });
+
+  sendOtp = () => {
+    if (this.state.phone.length !== 10) { this.setState({ phoneError: 'Enter a valid 10-digit number.' }); return; }
+    this.setState({ step: 'otp', simState: 'sent', otp: ['', '', '', '', '', ''] });
+  };
+  backToPhone = () => this.setState({ step: 'phone' });
+  retryNetwork = () => this.setState({ simState: 'sent' });
+  resendOtp = () => this.setState({ simState: 'sent', otp: ['', '', '', '', '', ''], attemptsLeft: 3 });
+  setSim = (v) => () => this.setState({ simState: v });
+
+  otpChange = (i) => (e) => {
+    const v = e.target.value.replace(/\D/g, '').slice(-1);
+    const otp = [...this.state.otp]; otp[i] = v; this.setState({ otp });
+  };
+
+  verifyOtp = () => {
+    const code = this.state.otp.join('');
+    if (code === '123456') { this.setState({ step: 'role' }); return; }
+    if (this.state.simState === 'wrong') { this.setState({ attemptsLeft: Math.max(0, this.state.attemptsLeft - 1) }); return; }
+    this.setState({ step: 'role' }); // demo fallback: any other complete code also proceeds
+  };
+
+  selectRole = (r) => () => this.setState({ role: r, joinValue: '' });
+  componentDidMount() { if (this.invite && !this.state.role) this.setState({ role: 'tenant' }); }
+  onJoinChange = (e) => this.setState({ joinValue: e.target.value });
+  onNameChange = (e) => this.setState({ name: e.target.value });
+  finishSignup = () => {
+    this.setState({ step: 'done' });
+    const fileMap = { owner: 'Owner Dashboard.dc.html', manager: 'Manager Today.dc.html', tenant: 'Tenant Home.dc.html' };
+    setTimeout(() => { window.location.href = fileMap[this.state.role] + (this.invite ? '?assigned=1' : ''); }, 1100);
+  };
+
+  renderVals() {
+    const s = this.state;
+    const simStates = ['sent', 'wrong', 'expired', 'rate-limited', 'network-error'].map(v => ({
+      label: v, checked: s.simState === v, onSelect: this.setSim(v),
+    }));
+    const svg = (path) => ({ __html: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>` });
+    const icons = {
+      owner: svg('<path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/>'),
+      manager: svg('<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 8h6M9 12h6M9 16h3"/>'),
+      tenant: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/>'),
+    };
+    const roles = [
+      { key: 'owner', title: 'Owner', subtitle: 'I run one or more PGs' },
+      { key: 'manager', title: 'Manager', subtitle: 'I manage a PG day-to-day' },
+      { key: 'tenant', title: 'Tenant', subtitle: 'I live in a PG' },
+    ].map(r => ({ ...r, icon: icons[r.key], checkMark: s.role === r.key ? '\u2713' : '', cardClass: 'role-card' + (s.role === r.key ? ' selected' : ''), onSelect: this.selectRole(r.key) }));
+
+    const joinLabelMap = { manager: 'PG / property code (given by owner)', tenant: 'PG / room code (or leave blank if invited)' };
+    const canContinue = !!s.role && s.name.trim().length > 1 && (s.role === 'owner' || true);
+    const inv = this.invite;
+
+    return {
+      theme: s.theme, themeLabel: s.theme === 'light' ? '\ud83c\udf19 Dark' : '\u2600\ufe0f Light', toggleTheme: this.toggleTheme,
+      isPhoneStep: s.step === 'phone', isOtpStep: s.step === 'otp', isRoleStep: s.step === 'role', isDone: s.step === 'done',
+      phone: s.phone, phoneError: s.phoneError, onPhoneChange: this.onPhoneChange, sendOtp: this.sendOtp, backToPhone: this.backToPhone,
+      isNetworkError: s.simState === 'network-error', isRateLimited: s.simState === 'rate-limited', retryNetwork: this.retryNetwork,
+      showOtpInputs: s.simState !== 'network-error' && s.simState !== 'rate-limited',
+      otpDigits: s.otp.map((v, i) => ({ value: v, onChange: this.otpChange(i) })),
+      isWrongOtp: s.simState === 'wrong', isExpiredOtp: s.simState === 'expired', attemptsLeft: s.attemptsLeft,
+      verifyOtp: this.verifyOtp, resendOtp: this.resendOtp, resendCountdown: '',
+      simStates,
+      roles, isJoinStep: !inv && (s.role === 'manager' || s.role === 'tenant'),
+      isTenantNoCode: !inv && s.role === 'tenant' && s.joinValue.trim() === '',
+      hasInvite: !!inv, invitePgName: inv ? inv.pgName : '', inviteRoom: inv ? inv.room : '', inviteBed: inv ? inv.bed : '',
+      joinLabel: joinLabelMap[s.role] || '', joinPlaceholder: 'e.g. HSR-204', joinValue: s.joinValue, onJoinChange: this.onJoinChange,
+      name: s.name, onNameChange: this.onNameChange, canContinue, finishSignup: this.finishSignup,
+      selectedRoleLabel: s.role,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

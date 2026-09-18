@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .list-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px}
+    .pg-switch-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--color-surface-alt);border-bottom:1px solid var(--color-divider)}
+    .pending-card{background:var(--color-info-100);border:1px solid color-mix(in srgb, var(--color-info) 25%, transparent);border-radius:var(--radius-md);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="{{ hrefs.more }}" style="color:var(--color-text);text-decoration:none;font-size:18px">←</a>
+      <h2 style="margin:0;font-size:19px">Tenants</h2>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <dc-import name="RoleSwitcher" current-role="manager" hint-size="110px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div class="pg-switch-bar">
+    <dc-import name="PortfolioSwitcher" properties="{{ pgSwitcherOptions }}" current-id="{{ currentPg }}" on-select="{{ onPgSelect }}" hint-size="200px,38px"></dc-import>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px">
+    <div class="cta-card" style="margin-bottom:16px" onClick="{{ openAdd }}">
+      <div class="cta-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div style="flex:1"><div class="cta-card-title">Add tenant</div><div class="cta-card-sub">Manually add someone with a known bed &amp; rent</div></div>
+      <span class="cta-card-chevron">›</span>
+    </div>
+
+    <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:16px">
+        <h6 style="margin:0 0 8px;color:var(--color-info-700)">Self-registered — needs a bed</h6>
+        <sc-for list="{{ pending }}" as="p" hint-placeholder-count="1">
+          <div class="pending-card">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:14px">{{ p.name }}</div>
+              <div style="font-size:12px;color:var(--color-text-muted)">{{ p.phone }} · joined via self-signup</div>
+            </div>
+            <button class="btn btn-primary" style="padding:7px 14px;font-size:12px" onClick="{{ p.onAssign }}">Assign bed</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-for list="{{ tenants }}" as="t" hint-placeholder-count="5">
+      <div class="list-card">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">{{ t.name }}</div>
+          <div style="font-size:12px;color:var(--color-text-muted)">{{ t.room }} \u00b7 {{ t.rent }}</div>
+        </div>
+        <span class="{{ t.tagClass }}">{{ t.status }}</span>
+        <sc-if value="{{ t.canMoveOut }}" hint-placeholder-val="{{ false }}">
+          <button class="row-kebab" onClick="{{ t.onMoveOut }}" title="More actions">⋮</button>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ moveOutOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:360px;max-width:92vw">
+        <div class="dialog-title">Mark as moved out?</div>
+        <div class="dialog-body" style="opacity:1;font-size:14px">{{ moveOutName }}'s bed will be freed and their status set to Vacated.</div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ closeMoveOut }}">Cancel</button>
+          <button class="btn btn-primary" style="background:var(--color-danger);border-color:var(--color-danger)" onClick="{{ confirmMoveOut }}">Move out</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:400px;max-width:92vw">
+        <div class="dialog-title">{{ dialogTitle }}</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:12px;opacity:1">
+          <sc-if value="{{ isAssignMode }}" hint-placeholder-val="{{ false }}">
+            <div class="field"><label>Tenant</label><div class="input" style="background:var(--color-surface-alt)">{{ form.name }}</div></div>
+          </sc-if>
+          <sc-if value="{{ !isAssignMode }}" hint-placeholder-val="{{ true }}">
+            <div class="field"><label>Full name</label><input class="input" type="text" value="{{ form.name }}" onChange="{{ setF_name }}"></input></div>
+          </sc-if>
+          <div class="field"><label>Room / Bed</label><input class="input" type="text" value="{{ form.room }}" onChange="{{ setF_room }}"></input></div>
+          <div class="field"><label>Monthly rent</label><input class="input" type="number" value="{{ form.rent }}" onChange="{{ setF_rent }}"></input></div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ close }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ save }}">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PG_NAMES = { hsr: 'HSR PG', ind: 'Indiranagar PG' };
+const PG_TENANTS = {
+  hsr: [
+    { name: 'Rahul Sharma', room: 'B-204', rent: '\u20b98,500', status: 'Active' },
+    { name: 'Ayesha Khan', room: 'A-108', rent: '\u20b99,000', status: 'Active' },
+    { name: 'Vikram Rao', room: 'C-301', rent: '\u20b97,500', status: 'Notice period' },
+    { name: 'Ravi Kumar', room: '101 - A', rent: '\u20b96,500', status: 'Active' },
+    { name: 'Amit Shah', room: '101 - B', rent: '\u20b96,500', status: 'Active' },
+  ],
+  ind: [
+    { name: 'Priya Menon', room: 'G1 - A', rent: '\u20b912,000', status: 'Active' },
+  ],
+};
+const PG_PENDING = {
+  hsr: [{ id: 'p1', name: 'Karthik Iyer', phone: '+91 90112 33445' }],
+  ind: [],
+};
+
+const NAV_ICON = {
+  Today: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Payments: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Rooms: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+class Component extends DCLogic {
+  state = { theme: 'light', dialogOpen: false, mode: 'add', form: { name: '', room: '', rent: '' }, added: {}, assignedIds: {}, vacated: {}, moveOutOpen: false, moveOutKey: null };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  openAdd = () => this.setState({ dialogOpen: true, mode: 'add', form: { name: '', room: '', rent: '' } });
+  openAssign = (p) => this.setState({ dialogOpen: true, mode: 'assign', assignId: p.id, form: { name: p.name, room: '', rent: '' } });
+  close = () => this.setState({ dialogOpen: false });
+  setF_name = (e) => this.setState(s => ({ form: { ...s.form, name: e.target.value } }));
+  setF_room = (e) => this.setState(s => ({ form: { ...s.form, room: e.target.value } }));
+  setF_rent = (e) => this.setState(s => ({ form: { ...s.form, rent: e.target.value } }));
+  openMoveOut = (key) => this.setState({ moveOutOpen: true, moveOutKey: key });
+  closeMoveOut = () => this.setState({ moveOutOpen: false });
+  confirmMoveOut = () => this.setState(s => ({ moveOutOpen: false, vacated: { ...s.vacated, [s.moveOutKey]: true } }));
+  componentDidMount() {
+    const params = new URLSearchParams(window.location.search);
+    const room = params.get('room'), bed = params.get('bed');
+    if (room && bed) {
+      this.setState({ dialogOpen: true, mode: 'add', form: { name: '', room: room + ' - ' + bed, rent: '' } });
+    } else if (params.get('add') === '1') {
+      this.setState({ dialogOpen: true, mode: 'add', form: { name: '', room: '', rent: '' } });
+    }
+  }
+  save = () => {
+    const f = this.state.form;
+    const currentPg = ['hsr', 'ind'].includes(new URLSearchParams(window.location.search).get('pg')) ? new URLSearchParams(window.location.search).get('pg') : 'hsr';
+    if (this.state.mode === 'assign') {
+      this.setState(s => ({
+        dialogOpen: false,
+        assignedIds: { ...s.assignedIds, [s.assignId]: true },
+        added: { ...s.added, [currentPg]: [...(s.added[currentPg] || []), { name: f.name, room: f.room, rent: '\u20b9' + (parseInt(f.rent, 10) || 0).toLocaleString('en-IN'), status: 'Active' }] },
+      }));
+    } else {
+      this.setState(s => ({
+        dialogOpen: false,
+        added: { ...s.added, [currentPg]: [...(s.added[currentPg] || []), { name: f.name || 'New tenant', room: f.room, rent: '\u20b9' + (parseInt(f.rent, 10) || 0).toLocaleString('en-IN'), status: 'Active' }] },
+      }));
+    }
+  };
+  renderVals() {
+    const s = this.state;
+    const currentPg = ['hsr', 'ind'].includes(new URLSearchParams(window.location.search).get('pg')) ? new URLSearchParams(window.location.search).get('pg') : 'hsr';
+    const q = '?pg=' + currentPg;
+    const tenants = [...PG_TENANTS[currentPg], ...(s.added[currentPg] || [])].map(t => {
+      const key = currentPg + '|' + t.name;
+      return s.vacated[key] ? { ...t, status: 'Vacated', room: t.room + ' (freed)' } : t;
+    });
+    const pending = PG_PENDING[currentPg].filter(p => !s.assignedIds[p.id]);
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\ud83c\udf19' : '\u2600\ufe0f', toggleTheme: this.toggleTheme,
+      currentPg, onPgSelect: (id) => { window.location.href = 'Manager Tenants.dc.html?pg=' + id; },
+      pgSwitcherOptions: Object.keys(PG_NAMES).map(id => ({ id, name: PG_NAMES[id] })),
+      hrefs: { more: 'Manager More.dc.html' + q },
+      hasPending: pending.length > 0,
+      pending: pending.map(p => ({ ...p, onAssign: () => this.openAssign(p) })),
+      tenants: tenants.map(t => ({
+        ...t, tagClass: t.status === 'Active' ? 'tag tag-success' : t.status === 'Vacated' ? 'tag tag-neutral' : 'tag tag-warning',
+        canMoveOut: t.status === 'Active' || t.status === 'Notice period',
+        onMoveOut: () => this.openMoveOut(currentPg + '|' + t.name),
+      })),
+      moveOutOpen: s.moveOutOpen, moveOutName: s.moveOutKey ? s.moveOutKey.split('|')[1] : '',
+      closeMoveOut: this.closeMoveOut, confirmMoveOut: this.confirmMoveOut,
+      dialogOpen: s.dialogOpen, dialogTitle: s.mode === 'assign' ? 'Assign bed to tenant' : 'Add tenant', isAssignMode: s.mode === 'assign',
+      form: s.form, setF_name: this.setF_name, setF_room: this.setF_room, setF_rent: this.setF_rent,
+      openAdd: this.openAdd, close: this.close, save: this.save,
+      tabs: [
+        { label: 'Today', href: 'Manager Today.dc.html' + q }, { label: 'Payments', href: 'Manager Payments.dc.html' + q },
+        { label: 'Rooms', href: 'Manager Rooms.dc.html' + q }, { label: 'More', href: 'Manager More.dc.html' + q },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.label === 'More' ? ' active' : ''), icon: NAV_ICON[t.label] })),
+    };
+  }
+}
+</script>
+</body>
+</html>

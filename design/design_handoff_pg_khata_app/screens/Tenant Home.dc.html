@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .announce-banner{display:flex;align-items:flex-start;gap:10px;background:var(--color-info-100);border-radius:var(--radius-md);padding:10px 14px}
+    .rent-card{background:var(--color-surface);color:var(--color-text);padding:22px;display:flex;flex-direction:column;gap:6px;border:1px solid var(--color-divider);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);border-top:4px solid var(--color-accent)}
+    .qa-strip{display:flex;gap:10px}
+    .qa-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);cursor:pointer;color:var(--color-text);text-decoration:none}
+    .qa-icon{width:30px;height:30px;border-radius:var(--radius-sm);display:grid;place-items:center}
+    .list-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px">
+    <h2 style="margin:0;font-size:19px">Hello, {{ name }} 👋</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <dc-import name="RoleSwitcher" current-role="tenant" hint-size="110px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:0 16px 16px;display:flex;flex-direction:column;gap:18px">
+
+    <sc-if value="{{ hasPendingCash }}" hint-placeholder-val="{{ false }}">
+      <a href="Tenant Payments.dc.html" style="text-decoration:none;color:inherit">
+        <div class="announce-banner" style="background:var(--color-info-100)">
+          <span style="font-size:15px">💰</span>
+          <div>
+            <div class="card-kicker" style="color:var(--color-info-700);margin-bottom:2px">Confirm your cash payment</div>
+            <div style="font-size:13px">Manager recorded {{ pendingCashAmount }} cash — tap to confirm or dispute.</div>
+          </div>
+        </div>
+      </a>
+    </sc-if>
+
+    <sc-if value="{{ hasAnnouncement }}" hint-placeholder-val="{{ true }}">
+      <div class="announce-banner">
+        <span style="font-size:15px">📢</span>
+        <div>
+          <div class="card-kicker" style="color:var(--color-info-700);margin-bottom:2px">Announcement</div>
+          <div style="font-size:13px">{{ announcement }}</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ !isAssigned }}" hint-placeholder-val="{{ false }}">
+      <div class="rent-card" style="border-top-color:var(--color-info)">
+        <div style="font-weight:700;font-size:15px">Welcome to {{ pgName }}!</div>
+        <div style="font-size:13px;color:var(--color-text-muted)">Your manager or owner is setting up your room. Your bed and monthly rent will appear here once assigned.</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAssigned }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ rentDueSoon }}" hint-placeholder-val="{{ true }}">
+        <div class="rent-card" style="{{ overdueBorder }}">
+          <div style="font-size:12px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.06em">Room {{ room }} · {{ dueLabel }}</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:34px">{{ rentAmount }}</div>
+          <button class="btn btn-primary" style="align-self:flex-start;margin-top:6px">Pay Rent</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ !rentDueSoon }}" hint-placeholder-val="{{ false }}">
+        <div class="rent-card" style="border-top-color:var(--color-success)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="color:var(--color-success)">✓</span>
+            <div style="font-weight:700;font-size:15px">You're all paid up</div>
+          </div>
+          <div style="font-size:12px;color:var(--color-text-muted)">Room {{ room }} · Next rent of {{ rentAmount }} due {{ dueDate }}</div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <div class="qa-strip">
+      <a class="qa-btn" href="Tenant Complaints.dc.html">
+        <div class="qa-icon" style="background:var(--color-warning-100);color:var(--color-warning-700)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4.5 8-11V5l-8-3-8 3v6c0 6.5 8 11 8 11Z"/></svg></div>
+        <div style="font-size:11px;font-weight:700">Report Issue</div>
+      </a>
+      <a class="qa-btn" href="Tenant Payments.dc.html">
+        <div class="qa-icon" style="background:var(--color-accent-100);color:var(--color-accent-700)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 2v4M16 2v4M4 10h16"/></svg></div>
+        <div style="font-size:11px;font-weight:700">Rent History</div>
+      </a>
+      <div class="qa-btn" onClick="{{ openPgInfo }}">
+        <div class="qa-icon" style="background:var(--color-info-100);color:var(--color-info-700)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg></div>
+        <div style="font-size:11px;font-weight:700">My PG</div>
+      </div>
+    </div>
+
+    <sc-if value="{{ isAssigned }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <h4 style="margin:0">Last payment</h4>
+          <a href="Tenant Payments.dc.html" style="font-size:12px;font-weight:600">See all</a>
+        </div>
+        <div>
+          <sc-for list="{{ payments }}" as="p" hint-placeholder-count="1">
+            <div class="list-card">
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600">{{ p.month }}</div>
+                <div style="font-size:12px;color:var(--color-text-muted)">{{ p.method }} · {{ p.date }}</div>
+              </div>
+              <span class="{{ p.tagClass }}">{{ p.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="margin:0 0 8px">Complaint status</h4>
+        <div class="list-card" style="margin-bottom:0">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600">Geyser not working</div>
+            <div style="font-size:12px;color:var(--color-text-muted)">Reported 2 days ago</div>
+          </div>
+          <span class="tag tag-warning">In Progress</span>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ pgInfoOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:360px;max-width:92vw">
+        <div class="dialog-title">{{ pgName }}</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:10px;opacity:1;font-size:14px">
+          <div><span class="text-muted">Address: </span>{{ pgAddress }}</div>
+          <div><span class="text-muted">Manager: </span>{{ managerName }}</div>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <a class="btn btn-secondary" href="tel:{{ managerPhone }}" style="flex:1;justify-content:center;text-decoration:none">Call manager</a>
+            <a class="btn btn-secondary" href="sms:{{ managerPhone }}" style="flex:1;justify-content:center;text-decoration:none">Message</a>
+          </div>
+        </div>
+        <div class="dialog-actions"><button class="btn btn-secondary" onClick="{{ closePgInfo }}">Close</button></div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAV_ICON = {
+  Home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Rent: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Complaints: 'M12 9v4M12 17h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
+  Profile: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21c0-4.4 3.6-8 8-8s8 3.6 8 8',
+};
+const TODAY = new Date('2026-09-16');
+class Component extends DCLogic {
+  state = { theme: 'light', pgInfoOpen: false, isAssigned: true };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  openPgInfo = () => this.setState({ pgInfoOpen: true });
+  closePgInfo = () => this.setState({ pgInfoOpen: false });
+
+  renderVals() {
+    const s = this.state;
+    const dueDate = new Date('2026-09-28');
+    const daysLeft = Math.round((dueDate - TODAY) / 86400000);
+    const rentDueSoon = daysLeft <= 5;
+    const isOverdue = daysLeft < 0;
+    const dueLabel = isOverdue ? Math.abs(daysLeft) + ' day' + (Math.abs(daysLeft) === 1 ? '' : 's') + ' overdue' : 'Rent due in ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's');
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\ud83c\udf19' : '\u2600\ufe0f', toggleTheme: this.toggleTheme,
+      name: 'Rahul', isAssigned: s.isAssigned, pgName: 'HSR PG', room: 'B-204', dueDate: '28 Sept', dueLabel,
+      rentAmount: '\u20b98,500', rentDueSoon, overdueBorder: isOverdue ? 'border-top-color:var(--color-danger)' : '',
+      hasPendingCash: true, pendingCashAmount: '\u20b98,500',
+      hasAnnouncement: true, announcement: 'Water supply will be interrupted on 18 Sept, 10am\u20131pm for maintenance.',
+      payments: [
+        { month: 'August 2026', method: 'UPI', date: '3 Aug', status: 'Paid', tagClass: 'tag tag-success' },
+      ],
+      pgInfoOpen: s.pgInfoOpen, openPgInfo: this.openPgInfo, closePgInfo: this.closePgInfo,
+      pgAddress: '27th Main, HSR Layout, Bengaluru', managerName: 'Ramesh Kumar', managerPhone: '+919876500000',
+      tabs: [
+        { label: 'Home', href: 'Tenant Home.dc.html' }, { label: 'Rent', href: 'Tenant Payments.dc.html' }, { label: 'Complaints', href: 'Tenant Complaints.dc.html' },
+        { label: 'Profile', href: 'Settings.dc.html?role=tenant' },
+      ].map((t, i) => ({ ...t, cls: 'bn-item-v2' + (i === 0 ? ' active' : ''), icon: NAV_ICON[t.label] })),
+    };
+  }
+}
+</script>
+</body>
+</html>

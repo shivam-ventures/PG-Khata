@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .list-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px}
+    .pg-switch-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--color-surface-alt);border-bottom:1px solid var(--color-divider)}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="{{ hrefs.today }}" style="color:var(--color-text);text-decoration:none;font-size:18px">←</a>
+      <h2 style="margin:0;font-size:19px">Collect Rent</h2>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <dc-import name="RoleSwitcher" current-role="manager" hint-size="110px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div class="pg-switch-bar">
+    <dc-import name="PortfolioSwitcher" properties="{{ pgSwitcherOptions }}" current-id="{{ currentPg }}" on-select="{{ onPgSelect }}" hint-size="200px,38px"></dc-import>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px">
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+      <div class="text-muted" style="text-align:center;padding:32px 0;font-size:14px">No tenants to collect from here yet.</div>
+    </sc-if>
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="3">
+      <div class="list-card">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">{{ r.name }}</div>
+          <div style="font-size:12px;color:var(--color-text-muted)">{{ r.room }}</div>
+        </div>
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-right:8px">{{ r.amount }}</div>
+        <sc-if value="{{ r.paid }}" hint-placeholder-val="{{ false }}">
+          <span class="tag tag-success">Paid</span>
+        </sc-if>
+        <sc-if value="{{ r.awaiting }}" hint-placeholder-val="{{ false }}">
+          <span class="tag tag-info">Awaiting confirmation</span>
+        </sc-if>
+        <sc-if value="{{ r.collectable }}" hint-placeholder-val="{{ true }}">
+          <button class="btn btn-primary" style="padding:7px 14px;font-size:12px" onClick="{{ r.onCollect }}">Collect</button>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ collectOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:380px;max-width:92vw">
+        <div class="dialog-title">Collect rent — {{ collectName }}</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:12px;opacity:1">
+          <div class="field"><label>Amount</label><input class="input" type="number" value="{{ collectForm.amount }}" onChange="{{ setCollectAmount }}"></input></div>
+          <div class="field">
+            <label>Method</label>
+            <select class="input" value="{{ collectForm.method }}" onChange="{{ setCollectMethod }}">
+              <option value="Cash">Cash</option>
+              <option value="UPI">UPI</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+          </div>
+          <sc-if value="{{ isCashMethod }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:var(--color-text-muted);background:var(--color-info-100);padding:10px 12px;border-radius:var(--radius-sm)">
+              Cash is marked "Awaiting confirmation" until {{ collectName }} confirms it on their end.
+            </div>
+          </sc-if>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ closeCollect }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ saveCollect }}">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PG_NAMES = { hsr: 'HSR PG', ind: 'Indiranagar PG' };
+const PG_ROWS = {
+  hsr: [
+    { name: 'Rahul Sharma', room: 'B-204', amount: 8500, paid: false },
+    { name: 'Ayesha Khan', room: 'A-108', amount: 9000, paid: false },
+    { name: 'Vikram Rao', room: 'C-301', amount: 7500, paid: false },
+    { name: 'Ravi Kumar', room: '101 - A', amount: 6500, paid: true },
+  ],
+  ind: [
+    { name: 'Priya Menon', room: 'G1 - A', amount: 12000, paid: true },
+  ],
+};
+
+const NAV_ICON = {
+  Today: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Payments: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Rooms: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+class Component extends DCLogic {
+  state = { theme: 'light', collected: {}, awaiting: {}, collectOpen: false, collectTarget: null, collectForm: { amount: '', method: 'Cash' } };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  openCollect = (pg, r) => this.setState({ collectOpen: true, collectTarget: { pg, name: r.name }, collectForm: { amount: String(r.amount), method: 'Cash' } });
+  closeCollect = () => this.setState({ collectOpen: false });
+  setCollectAmount = (e) => this.setState(s => ({ collectForm: { ...s.collectForm, amount: e.target.value } }));
+  setCollectMethod = (e) => this.setState(s => ({ collectForm: { ...s.collectForm, method: e.target.value } }));
+  saveCollect = () => {
+    const { pg, name } = this.state.collectTarget;
+    const key = pg + '|' + name;
+    const isCash = this.state.collectForm.method === 'Cash';
+    this.setState(s => ({
+      collectOpen: false,
+      collected: isCash ? s.collected : { ...s.collected, [key]: true },
+      awaiting: isCash ? { ...s.awaiting, [key]: true } : s.awaiting,
+    }));
+  };
+  renderVals() {
+    const s = this.state;
+    const currentPg = ['hsr', 'ind'].includes(new URLSearchParams(window.location.search).get('pg')) ? new URLSearchParams(window.location.search).get('pg') : 'hsr';
+    const q = '?pg=' + currentPg;
+    const rows = PG_ROWS[currentPg];
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\ud83c\udf19' : '\u2600\ufe0f', toggleTheme: this.toggleTheme,
+      currentPg, onPgSelect: (id) => { window.location.href = 'Manager Payments.dc.html?pg=' + id; },
+      pgSwitcherOptions: Object.keys(PG_NAMES).map(id => ({ id, name: PG_NAMES[id] })),
+      hrefs: { today: 'Manager Today.dc.html' + q },
+      isEmpty: rows.length === 0,
+      rows: rows.map(r => {
+        const key = currentPg + '|' + r.name;
+        const paid = r.paid || !!s.collected[key];
+        const awaiting = !paid && !!s.awaiting[key];
+        return {
+          name: r.name, room: r.room, amount: '\u20b9' + r.amount.toLocaleString('en-IN'),
+          paid, awaiting, collectable: !paid && !awaiting, onCollect: () => this.openCollect(currentPg, r),
+        };
+      }),
+      collectOpen: s.collectOpen, collectName: s.collectTarget ? s.collectTarget.name : '', collectForm: s.collectForm,
+      isCashMethod: s.collectForm.method === 'Cash', setCollectAmount: this.setCollectAmount, setCollectMethod: this.setCollectMethod,
+      closeCollect: this.closeCollect, saveCollect: this.saveCollect,
+      tabs: [
+        { label: 'Today', href: 'Manager Today.dc.html' + q }, { label: 'Payments', href: 'Manager Payments.dc.html' + q },
+        { label: 'Rooms', href: 'Manager Rooms.dc.html' + q }, { label: 'More', href: 'Manager More.dc.html' + q },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.label === 'Payments' ? ' active' : ''), icon: NAV_ICON[t.label] })),
+    };
+  }
+}
+</script>
+</body>
+</html>

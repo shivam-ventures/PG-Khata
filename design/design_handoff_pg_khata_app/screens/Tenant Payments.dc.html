@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .rent-card{background:var(--color-surface);color:var(--color-text);padding:22px;display:flex;flex-direction:column;gap:6px;border:1px solid var(--color-divider);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);border-top:4px solid var(--color-accent)}
+    .list-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="Tenant Home.dc.html" style="color:var(--color-text);text-decoration:none;font-size:18px">←</a>
+      <h2 style="margin:0;font-size:19px">Rent &amp; Payments</h2>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <dc-import name="RoleSwitcher" current-role="tenant" hint-size="120px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:22px">
+    <div class="rent-card">
+      <div style="font-size:12px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.06em">Room {{ room }} · Due {{ dueDate }}</div>
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:34px">{{ rentAmount }}</div>
+      <button class="btn btn-primary" style="align-self:flex-start;margin-top:6px">Pay Rent</button>
+    </div>
+
+    <sc-if value="{{ hasPendingCash }}" hint-placeholder-val="{{ false }}">
+      <div class="surface-card" style="background:var(--color-info-100);border-color:transparent;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+        <div>
+          <div class="card-kicker" style="color:var(--color-info-700)">Cash payment recorded by manager</div>
+          <div style="font-size:14px;font-weight:700">{{ pendingCash.amount }} on {{ pendingCash.date }}</div>
+        </div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">Did you pay this? Confirming helps keep your rent record accurate.</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" style="flex:1;justify-content:center" onClick="{{ disputeCash }}">I didn't pay this</button>
+          <button class="btn btn-primary" style="flex:1;justify-content:center" onClick="{{ confirmCash }}">Confirm</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <div>
+      <h4 style="margin:0 0 8px">Payment history</h4>
+      <sc-for list="{{ payments }}" as="p" hint-placeholder-count="6">
+        <div class="list-card">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600">{{ p.month }}</div>
+            <div style="font-size:12px;color:var(--color-text-muted)">{{ p.method }} · {{ p.date }}</div>
+          </div>
+          <span class="{{ p.tagClass }}">{{ p.status }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAV_ICON = {
+  Home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Rent: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Complaints: 'M12 9v4M12 17h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
+  Profile: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21c0-4.4 3.6-8 8-8s8 3.6 8 8',
+};
+class Component extends DCLogic {
+  state = { theme: 'light', cashResolved: null };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  confirmCash = () => this.setState({ cashResolved: 'confirmed' });
+  disputeCash = () => this.setState({ cashResolved: 'disputed' });
+  renderVals() {
+    const s = this.state;
+    const payments = [
+      { month: 'September 2026', method: '\u2014', date: 'Due 28 Sept', status: 'Pending', tagClass: 'tag tag-warning' },
+      { month: 'August 2026', method: 'Cash', date: '3 Aug', status: s.cashResolved === 'disputed' ? 'Disputed' : s.cashResolved === 'confirmed' ? 'Paid' : 'Awaiting confirmation', tagClass: s.cashResolved === 'disputed' ? 'tag tag-error' : s.cashResolved === 'confirmed' ? 'tag tag-success' : 'tag tag-info' },
+      { month: 'July 2026', method: 'Cash', date: '2 Jul', status: 'Paid', tagClass: 'tag tag-success' },
+      { month: 'June 2026', method: 'UPI', date: '4 Jun', status: 'Paid', tagClass: 'tag tag-success' },
+      { month: 'May 2026', method: 'UPI', date: '5 May', status: 'Paid', tagClass: 'tag tag-success' },
+    ];
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\ud83c\udf19' : '\u2600\ufe0f', toggleTheme: this.toggleTheme,
+      room: 'B-204', dueDate: '28 Sept', rentAmount: '\u20b98,500',
+      hasPendingCash: s.cashResolved === null, pendingCash: { amount: '\u20b98,500', date: '3 Aug' },
+      confirmCash: this.confirmCash, disputeCash: this.disputeCash,
+      payments,
+      tabs: [
+        { label: 'Home', href: 'Tenant Home.dc.html' }, { label: 'Rent', href: 'Tenant Payments.dc.html' },
+        { label: 'Complaints', href: 'Tenant Complaints.dc.html' }, { label: 'Profile', href: 'Settings.dc.html?role=tenant' },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.label === 'Rent' ? ' active' : ''), icon: NAV_ICON[t.label] })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

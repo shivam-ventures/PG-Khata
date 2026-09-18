@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .mini-stat-row{display:flex;gap:10px}
+    .mini-stat{flex:1;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:12px;display:flex;flex-direction:column;gap:2px}
+    .qa-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .qa-btn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);cursor:pointer;color:var(--color-text);text-decoration:none}
+    .qa-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:grid;place-items:center}
+    .qa-label{font-size:11px;font-weight:700;text-align:center;line-height:1.2}
+    .task-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px;padding:12px 14px}
+    .pg-switch-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--color-surface-alt);border-bottom:1px solid var(--color-divider)}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);gap:8px">
+    <div style="min-width:0">
+      <div style="font-size:12px;color:var(--color-text-muted)">{{ dateLabel }}</div>
+      <h2 style="margin:0;font-size:19px;white-space:nowrap">{{ greeting }}</h2>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex:none">
+      <dc-import name="RoleSwitcher" current-role="manager" hint-size="110px,36px"></dc-import>
+      <a class="theme-toggle" href="Settings.dc.html?role=manager" style="padding:6px;text-decoration:none" title="Settings">⚙️</a>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div class="pg-switch-bar">
+    <dc-import name="PortfolioSwitcher" properties="{{ pgOptions }}" current-id="{{ currentPg }}" on-select="{{ selectPg }}" hint-size="200px,38px"></dc-import>
+    <span class="text-muted" style="font-size:11px">Managing this PG</span>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:22px">
+
+    <div class="mini-stat-row">
+      <div class="mini-stat">
+        <div class="card-kicker" style="color:var(--color-text-muted)">Occupancy</div>
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:19px">{{ stats.occupancy }}</div>
+      </div>
+      <div class="mini-stat">
+        <div class="card-kicker" style="color:var(--color-text-muted)">Pending today</div>
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;color:var(--color-warning-700)">{{ stats.pending }}</div>
+      </div>
+      <div class="mini-stat">
+        <div class="card-kicker" style="color:var(--color-text-muted)">Complaints</div>
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;color:var(--color-danger)">{{ stats.complaints }}</div>
+      </div>
+    </div>
+
+    <div class="qa-strip">
+      <a class="qa-btn" href="{{ hrefs.payments }}">
+        <div class="qa-icon" style="background:var(--color-success-100);color:var(--color-success-700)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="qa-label">Collect Rent</div>
+      </a>
+      <a class="qa-btn" href="{{ hrefs.addTenant }}">
+        <div class="qa-icon" style="background:var(--color-accent-100);color:var(--color-accent-700)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/><path d="M19 8h3M20.5 6.5v3"/></svg></div>
+        <div class="qa-label">Add Tenant</div>
+      </a>
+      <a class="qa-btn" href="{{ hrefs.rooms }}">
+        <div class="qa-icon" style="background:var(--color-info-100);color:var(--color-info-700)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="15" width="7" height="7"/><rect x="14" y="15" width="7" height="7"/></svg></div>
+        <div class="qa-label">View Rooms</div>
+      </a>
+      <a class="qa-btn" href="{{ hrefs.complaints }}">
+        <div class="qa-icon" style="background:var(--color-warning-100);color:var(--color-warning-700)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4.5 8-11V5l-8-3-8 3v6c0 6.5 8 11 8 11Z"/></svg></div>
+        <div class="qa-label">Complaints</div>
+      </a>
+    </div>
+
+    <sc-if value="{{ hasTasks }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+          <h4 style="margin:0">Rent to collect</h4>
+          <a href="{{ hrefs.payments }}" style="font-size:12px;font-weight:600">See all</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ rentTasks }}" as="t" hint-placeholder-count="3">
+            <div class="task-card">
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:14px">{{ t.name }}</div>
+                <div style="font-size:12px;color:var(--color-text-muted)">{{ t.room }}</div>
+              </div>
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ t.amount }}</div>
+              <button class="btn btn-primary" style="padding:7px 14px;font-size:12px">Collect</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+          <h4 style="margin:0">Open complaints</h4>
+          <a href="{{ hrefs.complaints }}" style="font-size:12px;font-weight:600">See all</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ complaintTasks }}" as="c" hint-placeholder-count="2">
+            <div class="task-card">
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:14px">{{ c.title }}</div>
+                <div style="font-size:12px;color:var(--color-text-muted)">{{ c.room }} \u00b7 {{ c.age }}</div>
+              </div>
+              <span class="{{ c.tagClass }}">{{ c.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ !hasTasks }}" hint-placeholder-val="{{ false }}">
+      <div style="text-align:center;padding:48px 0;color:var(--color-text-muted)">
+        <div style="font-size:14px">All caught up for today.</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PG_NAMES = { hsr: 'HSR PG', ind: 'Indiranagar PG' };
+const PG_DATA = {
+  hsr: {
+    stats: { occupancy: '18/20', pending: '\u20b925,000', complaints: '2 open' },
+    rentTasks: [
+      { name: 'Rahul Sharma', room: 'B-204', amount: '\u20b98,500' },
+      { name: 'Ayesha Khan', room: 'A-108', amount: '\u20b99,000' },
+      { name: 'Vikram Rao', room: 'C-301', amount: '\u20b97,500' },
+    ],
+    complaintTasks: [
+      { title: 'Geyser not working', room: 'B-204', age: '2 days open', status: 'In Progress', tagClass: 'tag tag-warning' },
+      { title: 'Wifi down on 2nd floor', room: 'Floor 2', age: '5 hours open', status: 'Reported', tagClass: 'tag tag-error' },
+    ],
+  },
+  ind: {
+    stats: { occupancy: '1/1', pending: '\u20b90', complaints: '0 open' },
+    rentTasks: [],
+    complaintTasks: [],
+  },
+};
+
+const NAV_ICON = {
+  Today: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Payments: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Rooms: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+class Component extends DCLogic {
+  state = { theme: 'light' };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  selectPg = (id) => { window.location.href = 'Manager Today.dc.html?pg=' + id; };
+
+  renderVals() {
+    const s = this.state;
+    const currentPg = ['hsr', 'ind'].includes(new URLSearchParams(window.location.search).get('pg')) ? new URLSearchParams(window.location.search).get('pg') : 'hsr';
+    const data = PG_DATA[currentPg];
+    const q = '?pg=' + currentPg;
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\ud83c\udf19' : '\u2600\ufe0f', toggleTheme: this.toggleTheme,
+      dateLabel: 'Wednesday, 16 September', greeting: 'Good morning, Ramesh',
+      currentPg, selectPg: this.selectPg,
+      pgOptions: Object.keys(PG_NAMES).map(id => ({ id, name: PG_NAMES[id] })),
+      stats: data.stats,
+      hasTasks: data.rentTasks.length > 0 || data.complaintTasks.length > 0,
+      rentTasks: data.rentTasks, complaintTasks: data.complaintTasks,
+      hrefs: {
+        payments: 'Manager Payments.dc.html' + q, addTenant: 'Manager Tenants.dc.html' + q + '&add=1',
+        rooms: 'Manager Rooms.dc.html' + q, complaints: 'Manager Complaints.dc.html' + q,
+      },
+      tabs: [
+        { label: 'Today', href: 'Manager Today.dc.html' + q }, { label: 'Payments', href: 'Manager Payments.dc.html' + q },
+        { label: 'Rooms', href: 'Manager Rooms.dc.html' + q }, { label: 'More', href: 'Manager More.dc.html' + q },
+      ].map((t, i) => ({ ...t, cls: 'bn-item-v2' + (i === 0 ? ' active' : ''), icon: NAV_ICON[t.label] })),
+    };
+  }
+}
+</script>
+</body>
+</html>

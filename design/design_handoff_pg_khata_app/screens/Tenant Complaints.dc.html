@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .list-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px}
+    .cx-icon{width:36px;height:36px;border-radius:var(--radius-sm);display:grid;place-items:center;flex:none}
+    .cat-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border:1px solid var(--color-divider);border-radius:var(--radius-md);cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface)}
+    .cat-tile.active{background:var(--color-accent-100);border-color:var(--color-accent);color:var(--color-accent-700)}
+    .sev-tile{flex:1;text-align:center;padding:9px 4px;border:1px solid var(--color-divider);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface)}
+    .sev-tile.active{border-color:currentColor}
+    textarea.input{resize:vertical;min-height:70px;font-family:var(--font-body)}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="Tenant Home.dc.html" style="color:var(--color-text);text-decoration:none;font-size:18px">←</a>
+      <h2 style="margin:0;font-size:19px">Complaints</h2>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <dc-import name="RoleSwitcher" current-role="tenant" hint-size="100px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px">
+    <div class="list-card" style="cursor:pointer;background:var(--color-accent-100);border-color:transparent;margin-bottom:16px" onClick="{{ openAdd }}">
+      <div class="cx-icon" style="background:var(--color-accent);color:#fff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:15px;color:var(--color-accent-700)">Report an issue</div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">Plumbing, electrical, wifi &amp; more</div>
+      </div>
+      <span style="color:var(--color-accent-700);font-size:18px">›</span>
+    </div>
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+      <div class="text-muted" style="text-align:center;padding:32px 0;font-size:14px">No complaints reported. 🎉</div>
+    </sc-if>
+    <sc-for list="{{ items }}" as="c" hint-placeholder-count="2">
+      <div class="list-card">
+        <div class="cx-icon" style="background:{{ c.iconBg }};color:{{ c.iconColor }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.icon }}"></path></svg></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600">{{ c.title }}</div>
+          <div style="font-size:12px;color:var(--color-text-muted)">{{ c.category }} · {{ c.age }} · prefers {{ c.timePref }}</div>
+        </div>
+        <div style="text-align:right">
+          <span class="{{ c.tagClass }}">{{ c.status }}</span>
+          <sc-if value="{{ c.hasSubtext }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:11px;color:var(--color-text-secondary);margin-top:4px;max-width:120px">{{ c.subtext }}</div>
+          </sc-if>
+          <sc-if value="{{ c.canReopen }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:4px"><a href="#" style="font-size:11px;font-weight:600" onClick="{{ c.onReopen }}">Not fixed yet?</a></div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:420px;max-width:92vw">
+        <div class="dialog-title">Report an issue</div>
+        <div class="text-muted" style="font-size:12px;margin-bottom:10px">Room {{ room }} · {{ pgName }}</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:14px;opacity:1">
+          <div class="field">
+            <label>Category</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px">
+              <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="5">
+                <div class="{{ cat.cls }}" onClick="{{ cat.onClick }}">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ cat.icon }}"></path></svg>
+                  <span>{{ cat.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div class="field">
+            <label>How urgent is this?</label>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <sc-for list="{{ severities }}" as="sv" hint-placeholder-count="3">
+                <div class="{{ sv.cls }}" style="color:{{ sv.color }}" onClick="{{ sv.onClick }}">{{ sv.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div class="field"><label>Describe the issue</label><textarea class="input" rows="3" placeholder="What's wrong, and where?" value="{{ form.title }}" onChange="{{ setF_title }}"></textarea></div>
+          <div class="field">
+            <label>Preferred time to fix</label>
+            <select class="input" value="{{ form.timePref }}" onChange="{{ setF_timePref }}">
+              <option value="Anytime">Anytime</option>
+              <option value="Morning (8am\u201312pm)">Morning (8am\u201312pm)</option>
+              <option value="Afternoon (12\u20134pm)">Afternoon (12\u20134pm)</option>
+              <option value="Evening (4\u20138pm)">Evening (4\u20138pm)</option>
+            </select>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ close }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ save }}">Submit</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAV_ICON = {
+  Home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Rent: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Complaints: 'M12 9v4M12 17h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
+  Profile: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21c0-4.4 3.6-8 8-8s8 3.6 8 8',
+};
+const CATEGORY_INFO = {
+  Plumbing: { icon: 'M12 2s6 7 6 11a6 6 0 1 1-12 0c0-4 6-11 6-11Z', bg: 'var(--color-info-100)', color: 'var(--color-info-700)' },
+  Electrical: { icon: 'M13 2 3 14h7l-1 8 11-14h-7l1-6Z', bg: 'var(--color-warning-100)', color: 'var(--color-warning-700)' },
+  'Wifi/Internet': { icon: 'M2 8.5a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0M8.5 15.5a6 6 0 0 1 7 0M12 19h.01', bg: 'var(--color-accent-100)', color: 'var(--color-accent-700)' },
+  Cleaning: { icon: 'M12 3v4M12 17v4M3 12h4M17 12h4M5.5 5.5l2.5 2.5M16 16l2.5 2.5M18.5 5.5 16 8M8 16l-2.5 2.5', bg: 'var(--color-success-100)', color: 'var(--color-success-700)' },
+  Other: { icon: 'M5 12h.01M12 12h.01M19 12h.01', bg: 'var(--color-neutral-100)', color: 'var(--color-text-secondary)' },
+};
+const SEVERITIES = [
+  { key: 'Low', color: 'var(--color-success-700)' },
+  { key: 'Medium', color: 'var(--color-warning-700)' },
+  { key: 'High', color: 'var(--color-danger-700)' },
+];
+const STATUS_CLASS = { Reported: 'tag tag-error', Delegated: 'tag tag-warning', Resolved: 'tag tag-success', Reopened: 'tag tag-error' };
+const DAY = 86400000;
+function effectiveStatus(c) {
+  if (c.status === 'Delegated' && Date.now() - c.delegatedAt >= (c.autoResolveDays || 3) * DAY) return 'Resolved';
+  return c.status;
+}
+
+class Component extends DCLogic {
+  state = {
+    theme: 'light', dialogOpen: false, form: { category: 'Plumbing', severity: 'Medium', title: '', timePref: 'Anytime' },
+    items: [
+      { id: 1, title: 'Geyser not working', category: 'Plumbing', age: 'Reported 2 days ago', status: 'Delegated', delegatedTo: 'Electrician', delegatedAt: Date.now() - 2 * DAY, autoResolveDays: 3, timePref: 'Evening (4\u20138pm)' },
+      { id: 2, title: 'Wifi slow in room', category: 'Wifi/Internet', age: 'Resolved yesterday', status: 'Resolved', timePref: 'Anytime' },
+    ],
+  };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  openAdd = () => this.setState({ dialogOpen: true, form: { category: 'Plumbing', severity: 'Medium', title: '', timePref: 'Anytime' } });
+  close = () => this.setState({ dialogOpen: false });
+  setF_category = (cat) => this.setState(s => ({ form: { ...s.form, category: cat } }));
+  setF_severity = (sv) => this.setState(s => ({ form: { ...s.form, severity: sv } }));
+  setF_title = (e) => this.setState(s => ({ form: { ...s.form, title: e.target.value } }));
+  setF_timePref = (e) => this.setState(s => ({ form: { ...s.form, timePref: e.target.value } }));
+  save = () => {
+    const f = this.state.form;
+    this.setState(s => ({ dialogOpen: false, items: [{ id: Date.now(), title: f.title || f.category + ' issue', category: f.category, age: 'Reported just now', status: 'Reported', timePref: f.timePref }, ...s.items] }));
+  };
+  reopen = (id, e) => { if (e) e.preventDefault(); this.setState(s => ({ items: s.items.map(c => c.id === id ? { ...c, status: 'Reopened', age: 'Reopened just now' } : c) })); };
+  renderVals() {
+    const s = this.state;
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\ud83c\udf19' : '\u2600\ufe0f', toggleTheme: this.toggleTheme,
+      room: 'B-204', pgName: 'HSR PG',
+      isEmpty: s.items.length === 0,
+      items: s.items.map(c => {
+        const eff = effectiveStatus(c);
+        let subtext = '', hasSubtext = false;
+        if (eff === 'Delegated') {
+          const dl = Math.max(0, Math.ceil((c.autoResolveDays || 3) - (Date.now() - c.delegatedAt) / DAY));
+          subtext = 'Being handled by ' + c.delegatedTo + ' \u00b7 auto-closes in ' + dl + 'd'; hasSubtext = true;
+        } else if (eff === 'Resolved' && c.status === 'Delegated') {
+          subtext = 'Closed automatically'; hasSubtext = true;
+        }
+        return {
+          title: c.title, category: c.category, age: c.age, status: eff, tagClass: STATUS_CLASS[eff], timePref: c.timePref || 'Anytime',
+          icon: (CATEGORY_INFO[c.category] || CATEGORY_INFO.Other).icon,
+          iconBg: (CATEGORY_INFO[c.category] || CATEGORY_INFO.Other).bg, iconColor: (CATEGORY_INFO[c.category] || CATEGORY_INFO.Other).color,
+          hasSubtext, subtext, canReopen: eff === 'Delegated' || eff === 'Resolved', onReopen: (e) => this.reopen(c.id, e),
+        };
+      }),
+      dialogOpen: s.dialogOpen, form: s.form,
+      categories: Object.keys(CATEGORY_INFO).map(label => ({
+        label, icon: CATEGORY_INFO[label].icon,
+        cls: 'cat-tile' + (s.form.category === label ? ' active' : ''),
+        onClick: () => this.setF_category(label),
+      })),
+      severities: SEVERITIES.map(sv => ({
+        label: sv.key, color: sv.color,
+        cls: 'sev-tile' + (s.form.severity === sv.key ? ' active' : ''),
+        onClick: () => this.setF_severity(sv.key),
+      })),
+      setF_title: this.setF_title, setF_timePref: this.setF_timePref, openAdd: this.openAdd, close: this.close, save: this.save,
+      tabs: [
+        { label: 'Home', href: 'Tenant Home.dc.html' }, { label: 'Rent', href: 'Tenant Payments.dc.html' },
+        { label: 'Complaints', href: 'Tenant Complaints.dc.html' }, { label: 'Profile', href: 'Settings.dc.html?role=tenant' },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.label === 'Complaints' ? ' active' : ''), icon: NAV_ICON[t.label] })),
+    };
+  }
+}
+</script>
+</body>
+</html>

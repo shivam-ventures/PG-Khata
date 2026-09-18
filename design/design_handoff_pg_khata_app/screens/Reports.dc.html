@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .stat-grid-owner{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .hbar-row{display:grid;grid-template-columns:88px 1fr 56px;align-items:center;gap:8px;padding:8px 0}
+    .hbar-track{height:8px;background:var(--color-neutral-100);border-radius:99px;position:relative;overflow:hidden}
+    .hbar-fill{position:absolute;left:0;top:0;bottom:0;background:var(--color-accent);border-radius:99px}
+    .vbar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;border-bottom:1px solid var(--color-divider)}
+    .vbar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
+    .vbar{width:100%;max-width:28px;background:var(--color-accent-100);border-radius:6px 6px 0 0;border-top:3px solid var(--color-accent)}
+    .list-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:12px 14px;margin-bottom:8px}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);gap:10px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0;font-size:19px">Reports</h2>
+      <div class="text-muted" style="font-size:12px">Portfolio performance, month to date</div>
+    </div>
+    <dc-import name="RoleSwitcher" current-role="owner" hint-size="100px,36px"></dc-import>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:18px">
+    <div class="stat-grid-owner">
+      <sc-for list="{{ stats }}" as="st" hint-placeholder-count="4">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:{{ st.iconBg }};color:{{ st.iconColor }}">{{ st.icon }}</div>
+          <div class="card-kicker" style="color:var(--color-text-muted)">{{ st.label }}</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;line-height:1">{{ st.value }}</div>
+          <div class="card-meta">{{ st.sub }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="surface-card" style="padding:16px">
+      <h4 style="margin:0 0 12px;font-size:15px">Revenue by property</h4>
+      <sc-for list="{{ revenueBars }}" as="b" hint-placeholder-count="3">
+        <div class="hbar-row">
+          <div style="font-size:12px">{{ b.name }}</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:{{ b.pct }}"></div></div>
+          <div style="font-size:12px;font-weight:700;text-align:right">{{ b.value }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="surface-card" style="padding:16px">
+      <h4 style="margin:0 0 12px;font-size:15px">Occupancy trend (6 mo)</h4>
+      <div class="vbar-chart">
+        <sc-for list="{{ occTrend }}" as="m" hint-placeholder-count="6">
+          <div class="vbar-col">
+            <div style="font-size:10px;font-weight:700">{{ m.pct }}</div>
+            <div class="vbar" style="height:{{ m.h }}"></div>
+            <div class="text-muted" style="font-size:10px;margin-top:4px">{{ m.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div>
+      <h4 style="margin:0 0 10px">Property comparison</h4>
+      <sc-for list="{{ compareRows }}" as="p" hint-placeholder-count="3">
+        <div class="list-card">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+            <div style="font-weight:700;font-size:14px">{{ p.name }}</div>
+            <div style="font-weight:700;font-size:14px">{{ p.revenue }}</div>
+          </div>
+          <div class="text-muted" style="font-size:12px">Occupancy {{ p.occ }} · {{ p.complaints }} complaints · {{ p.manager }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ ownerMobileTabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAV_ICON = {
+  Overview: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Properties: 'M4 21V4h9v17M13 21V9h7v12M4 21h16M7 8h2M7 12h2M7 16h2',
+  Tenants: 'M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 8a3 3 0 1 1 0 6M22 20c0-2.8-1.9-5.1-4.5-5.8',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+
+class Component extends DCLogic {
+  state = { theme: 'light' };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  renderVals() {
+    const s = this.state;
+    const revenue = [{ name: 'HSR PG', value: 160000 }, { name: 'Koramangala PG', value: 120000 }, { name: 'Indiranagar PG', value: 130000 }];
+    const maxRev = Math.max(...revenue.map(r => r.value));
+    const occ = [78, 80, 83, 85, 84, 86];
+    const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\u{1F319}' : '\u2600\uFE0F', toggleTheme: this.toggleTheme,
+      ownerMobileTabs: [
+        { label: 'Overview', href: 'Owner Dashboard.dc.html' }, { label: 'Properties', href: 'Properties.dc.html' },
+        { label: 'Tenants', href: 'Tenants.dc.html' }, { label: 'More', href: 'Settings.dc.html?role=owner' },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.label === 'More' ? ' active' : ''), icon: NAV_ICON[t.label] })),
+      stats: [
+        { label: 'Total revenue', value: '\u20b94.1L', sub: 'of \u20b94.6L expected', icon: '\ud83d\udcb0', iconBg: 'var(--color-success-100)', iconColor: 'var(--color-success-700)' },
+        { label: 'Avg occupancy', value: '86%', sub: 'across 3 PGs', icon: '\ud83c\udfe0', iconBg: 'var(--color-accent-100)', iconColor: 'var(--color-accent-700)' },
+        { label: 'Avg collection time', value: '4.2 days', sub: 'after due date', icon: '\ud83d\udcc5', iconBg: 'var(--color-info-100)', iconColor: 'var(--color-info-700)' },
+        { label: 'Complaint resolution', value: '91%', sub: 'closed within 48h', icon: '\u2705', iconBg: 'var(--color-success-100)', iconColor: 'var(--color-success-700)' },
+      ],
+      revenueBars: revenue.map(r => ({ name: r.name, pct: Math.round(r.value / maxRev * 100) + '%', value: '\u20b9' + (r.value / 100000).toFixed(1) + 'L' })),
+      occTrend: occ.map((pct, i) => ({ pct: pct + '%', h: Math.round(pct / 100 * 120) + 'px', label: months[i] })),
+      compareRows: [
+        { name: 'HSR PG', occ: '18/20', revenue: '\u20b91.6L', complaints: 2, manager: 'Ramesh K.' },
+        { name: 'Koramangala PG', occ: '14/18', revenue: '\u20b91.2L', complaints: 0, manager: 'Divya S.' },
+        { name: 'Indiranagar PG', occ: '10/11', revenue: '\u20b91.3L', complaints: 4, manager: 'Ramesh K.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

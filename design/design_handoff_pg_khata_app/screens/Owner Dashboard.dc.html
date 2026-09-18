@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .attn-card{background:var(--color-warning-100);border:1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);border-radius:var(--radius-md);padding:14px 16px}
+    .attn-row{display:flex;align-items:center;gap:10px;padding:8px 0}
+    .stat-grid-owner{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .prop-card{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:14px;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--color-text)}
+    .prop-meta-row{display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-muted)}
+    .demo-toggle-row{display:flex;justify-content:center;padding-top:6px}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);gap:8px">
+    <div style="min-width:0">
+      <div style="font-size:12px;color:var(--color-text-muted)">{{ dateLabel }}</div>
+      <h2 style="margin:0;font-size:19px;white-space:nowrap">{{ greeting }}</h2>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex:none">
+      <dc-import name="RoleSwitcher" current-role="owner" hint-size="110px,36px"></dc-import>
+      <a class="theme-toggle" href="Settings.dc.html?role=owner" style="padding:6px;text-decoration:none" title="Settings">⚙️</a>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:32px 20px;gap:14px">
+      <div style="width:52px;height:52px;border-radius:var(--radius-md);display:grid;place-items:center;background:var(--color-accent-100);color:var(--color-accent-700)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg>
+      </div>
+      <h2 style="margin:0;font-size:19px">No properties yet</h2>
+      <p class="text-muted" style="margin:0;font-size:14px">Let's set up your first PG — add rooms and beds, then invite a manager or tenants.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;width:100%">
+        <button class="btn btn-primary btn-block">Add Property</button>
+        <button class="btn btn-secondary btn-block">Import from Excel</button>
+      </div>
+      <a href="#" onClick="{{ setPopulated }}" style="font-size:12px;color:var(--color-text-muted);margin-top:8px">Show sample data instead</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isPopulated }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:22px">
+
+      <sc-if value="{{ hasAttention }}" hint-placeholder-val="{{ true }}">
+        <div class="attn-card">
+          <h6 style="margin:0 0 8px;color:var(--color-warning-700)">Needs your attention</h6>
+          <sc-for list="{{ attentionItems }}" as="a" hint-placeholder-count="3">
+            <div class="attn-row">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--color-warning);flex:none"></div>
+              <div style="flex:1;font-size:13px">{{ a.text }}</div>
+              <a href="{{ a.href }}" style="font-size:12px;font-weight:600">View</a>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div class="qa-strip" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+        <a class="qa-btn" href="Payments.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 2px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);text-decoration:none;color:var(--color-text);min-width:0">
+          <span style="font-size:17px">💰</span><span style="font-size:10.5px;font-weight:700;text-align:center">Payments</span>
+        </a>
+        <a class="qa-btn" href="Complaints.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 2px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);text-decoration:none;color:var(--color-text);min-width:0">
+          <span style="font-size:17px">⚠️</span><span style="font-size:10.5px;font-weight:700;text-align:center">Complaints</span>
+        </a>
+        <a class="qa-btn" href="Reports.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 2px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);text-decoration:none;color:var(--color-text);min-width:0">
+          <span style="font-size:17px">📊</span><span style="font-size:10.5px;font-weight:700;text-align:center">Reports</span>
+        </a>
+        <a class="qa-btn" href="Properties.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 2px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);text-decoration:none;color:var(--color-text);min-width:0">
+          <span style="font-size:17px">🏠</span><span style="font-size:10.5px;font-weight:700;text-align:center">Properties</span>
+        </a>
+      </div>
+
+      <div class="stat-grid-owner">
+        <sc-for list="{{ stats }}" as="st" hint-placeholder-count="4">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:{{ st.iconBg }};color:{{ st.iconColor }}">{{ st.icon }}</div>
+            <div class="card-kicker" style="color:var(--color-text-muted)">{{ st.label }}</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:22px;line-height:1">{{ st.value }}</div>
+            <div class="card-meta">{{ st.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+          <h4 style="margin:0">Properties</h4>
+          <a href="Properties.dc.html" style="font-size:12px;font-weight:600">View all</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ properties }}" as="p" hint-placeholder-count="3">
+            <a class="prop-card" href="{{ p.roomsHref }}">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="font-weight:700;font-size:15px">{{ p.name }}</div>
+                <span class="{{ p.complaintTagClass }}">{{ p.complaints }}</span>
+              </div>
+              <div class="prop-meta-row">
+                <span>Occupancy: {{ p.occupancy }}</span>
+                <span>{{ p.rent }}</span>
+              </div>
+              <div class="prop-meta-row"><span>Manager: {{ p.manager }}</span></div>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+
+      <div class="demo-toggle-row">
+        <a href="#" onClick="{{ setEmpty }}" style="font-size:11px;color:var(--color-text-muted)">Preview empty state</a>
+      </div>
+    </div>
+  </sc-if>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ ownerMobileTabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAV_ICON = {
+  Overview: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Properties: 'M4 21V4h9v17M13 21V9h7v12M4 21h16M7 8h2M7 12h2M7 16h2',
+  Tenants: 'M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 8a3 3 0 1 1 0 6M22 20c0-2.8-1.9-5.1-4.5-5.8',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+};
+class Component extends DCLogic {
+  state = { theme: 'light', populated: true };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  setEmpty = (e) => { e.preventDefault(); this.setState({ populated: false }); };
+  setPopulated = (e) => { e.preventDefault(); this.setState({ populated: true }); };
+
+  renderVals() {
+    const s = this.state;
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\u{1F319}' : '\u2600\uFE0F', toggleTheme: this.toggleTheme,
+      dateLabel: 'Wednesday, 16 September', greeting: 'Good morning, Anita',
+      ownerMobileTabs: [
+        { label: 'Overview', href: 'Owner Dashboard.dc.html', active: true },
+        { label: 'Properties', href: 'Properties.dc.html' }, { label: 'Tenants', href: 'Tenants.dc.html' },
+        { label: 'More', href: 'Settings.dc.html?role=owner' },
+      ].map(t => ({ ...t, cls: 'bn-item-v2' + (t.active ? ' active' : ''), icon: NAV_ICON[t.label] })),
+      isEmpty: !s.populated, isPopulated: s.populated,
+      setEmpty: this.setEmpty, setPopulated: this.setPopulated,
+      hasAttention: true,
+      attentionItems: [
+        { text: '\u20b932,000 rent pending across 4 tenants', href: 'Payments.dc.html' },
+        { text: '4 vacant beds \u2014 HSR PG, Koramangala PG', href: 'Rooms.dc.html' },
+        { text: '2 complaints open for more than 48 hours', href: 'Complaints.dc.html' },
+      ],
+      stats: [
+        { label: 'Occupancy', value: '86%', sub: '42 / 49 beds', icon: '\ud83c\udfe0', iconBg: 'var(--color-accent-100)', iconColor: 'var(--color-accent-700)' },
+        { label: 'Rent collected', value: '\u20b94.1L', sub: 'of \u20b94.6L expected', icon: '\ud83d\udcb0', iconBg: 'var(--color-success-100)', iconColor: 'var(--color-success-700)' },
+        { label: 'Pending rent', value: '\u20b932,000', sub: '4 tenants', icon: '\u23f3', iconBg: 'var(--color-warning-100)', iconColor: 'var(--color-warning-700)' },
+        { label: 'Open complaints', value: '6', sub: '2 overdue', icon: '\u26a0\ufe0f', iconBg: 'var(--color-danger-100)', iconColor: 'var(--color-danger-700)' },
+      ],
+      properties: [
+        { name: 'HSR PG', occupancy: '18/20', rent: '\u20b91.6L / \u20b91.8L', complaints: '2 open', complaintTagClass: 'tag tag-warning', manager: 'Ramesh K.', roomsHref: 'Rooms.dc.html?property=hsr' },
+        { name: 'Koramangala PG', occupancy: '14/18', rent: '\u20b91.2L / \u20b91.3L', complaints: '0 open', complaintTagClass: 'tag tag-success', manager: 'Divya S.', roomsHref: 'Rooms.dc.html?property=kor' },
+        { name: 'Indiranagar PG', occupancy: '10/11', rent: '\u20b91.3L / \u20b91.5L', complaints: '4 open', complaintTagClass: 'tag tag-error', manager: 'Ramesh K.', roomsHref: 'Rooms.dc.html?property=ind' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

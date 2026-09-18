@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/styles.css">
+  <link rel="stylesheet" href="tokens-extra.css">
+  <script src="_ds/modernist-da389023-42f5-471e-ad5c-349391820232/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent)}
+    a:hover{color:var(--color-accent-600)}
+    .set-row{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid var(--color-divider);flex-wrap:wrap}
+    .set-row:last-child{border-bottom:0}
+    .avatar{width:52px;height:52px;flex:none;background:var(--color-accent-100);color:var(--color-accent-700);display:grid;place-items:center;font-family:var(--font-heading);font-weight:800;font-size:17px}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-direction:column;max-width:480px;margin:0 auto;box-shadow:var(--shadow-lg)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-surface);border-bottom:1px solid var(--color-divider)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="{{ backHref }}" style="color:var(--color-text);text-decoration:none;font-size:18px">←</a>
+      <h2 style="margin:0;font-size:19px">Settings</h2>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <dc-import name="RoleSwitcher" current-role="{{ role }}" hint-size="100px,36px"></dc-import>
+      <button class="theme-toggle" style="padding:6px" onClick="{{ toggleTheme }}">{{ themeIcon }}</button>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:20px">
+    <div class="surface-card" style="padding:4px 16px">
+      <h6 style="margin:14px 0 4px;color:var(--color-text-muted)">Profile</h6>
+      <div class="set-row">
+        <div class="avatar">{{ initials }}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px">{{ userName }}</div>
+          <div class="text-muted" style="font-size:13px">+91 {{ phone }} · {{ roleLabel }}</div>
+        </div>
+        <button class="btn btn-secondary">Edit</button>
+      </div>
+    </div>
+
+    <div class="surface-card" style="padding:4px 16px">
+      <h6 style="margin:14px 0 4px;color:var(--color-text-muted)">Notifications</h6>
+      <sc-for list="{{ notifPrefs }}" as="np" hint-placeholder-count="3">
+        <div class="set-row">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:14px">{{ np.label }}</div>
+            <div class="text-muted" style="font-size:12px">{{ np.sub }}</div>
+          </div>
+          <sc-if value="{{ np.mandatory }}" hint-placeholder-val="{{ false }}">
+            <span class="tag tag-info" title="Required — keeps rent due dates and payment confirmations reliable">Always on</span>
+          </sc-if>
+          <sc-if value="{{ !np.mandatory }}" hint-placeholder-val="{{ true }}">
+            <label class="seg" style="font-size:11px">
+              <span class="seg-opt"><input type="radio" name="{{ np.key }}" checked="{{ np.on }}"></input>On</span>
+              <span class="seg-opt"><input type="radio" name="{{ np.key }}" checked="{{ !np.on }}"></input>Off</span>
+            </label>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="surface-card" style="padding:4px 16px">
+      <h6 style="margin:14px 0 4px;color:var(--color-text-muted)">Account</h6>
+      <div class="set-row">
+        <div style="flex:1;font-size:14px">Language</div>
+        <select class="input" style="width:auto;min-width:130px" value="{{ language }}" onChange="{{ onLanguageChange }}">
+          <sc-for list="{{ languages }}" as="lg" hint-placeholder-count="5">
+            <option value="{{ lg }}">{{ lg }}</option>
+          </sc-for>
+        </select>
+      </div>
+      <div class="set-row">
+        <div style="flex:1;font-size:14px">App version</div>
+        <div class="text-muted" style="font-size:13px">1.0.0 (Phase 1)</div>
+      </div>
+      <div class="set-row">
+        <button class="btn btn-secondary" style="color:var(--color-danger)">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav-v2" style="display:flex;position:sticky;bottom:0">
+    <sc-for list="{{ mobileTabs }}" as="tb" hint-placeholder-count="4">
+      <a class="{{ tb.cls }}" href="{{ tb.href }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.icon }}"></path></svg><span>{{ tb.label }}</span></a>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAV_ICON = {
+  Overview: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Today: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-4v-7H8v7H4a1 1 0 0 1-1-1V10.5Z',
+  Properties: 'M4 21V4h9v17M13 21V9h7v12M4 21h16M7 8h2M7 12h2M7 16h2',
+  Tenants: 'M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 8a3 3 0 1 1 0 6M22 20c0-2.8-1.9-5.1-4.5-5.8',
+  Payments: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Rent: 'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7ZM16 12h.01',
+  Rooms: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  Complaints: 'M12 9v4M12 17h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
+  More: 'M5 12h.01M12 12h.01M19 12h.01',
+  Profile: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21c0-4.4 3.6-8 8-8s8 3.6 8 8',
+};
+
+class Component extends DCLogic {
+  state = { theme: 'light', role: 'manager', language: 'English' };
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' }));
+  onLanguageChange = (e) => this.setState({ language: e.target.value });
+
+  renderVals() {
+    const s = this.state;
+    const urlRole = new URLSearchParams(window.location.search).get('role');
+    const role = (['owner', 'manager', 'tenant'].includes(urlRole) ? urlRole : null) ?? this.props.role ?? s.role;
+    const roleLabel = { owner: 'Owner', manager: 'Manager', tenant: 'Tenant' }[role];
+    const backHrefMap = { manager: 'Manager Today.dc.html', tenant: 'Tenant Home.dc.html', owner: 'Owner Dashboard.dc.html' };
+    const mobileTabsMap = {
+      manager: [{ label: 'Today', href: 'Manager Today.dc.html' }, { label: 'Payments', href: 'Manager Payments.dc.html' }, { label: 'Rooms', href: 'Manager Rooms.dc.html' }, { label: 'More', href: 'Manager More.dc.html' }].map(t => ({ ...t, active: t.label === 'More' })),
+      tenant: [{ label: 'Home', href: 'Tenant Home.dc.html' }, { label: 'Rent', href: 'Tenant Payments.dc.html' }, { label: 'Complaints', href: 'Tenant Complaints.dc.html' }, { label: 'Profile', href: '#' }].map(t => ({ ...t, active: t.label === 'Profile' })),
+      owner: [{ label: 'Overview', href: 'Owner Dashboard.dc.html' }, { label: 'Properties', href: 'Properties.dc.html' }, { label: 'Tenants', href: 'Tenants.dc.html' }, { label: 'More', href: '#' }].map(t => ({ ...t, active: t.label === 'More' })),
+    };
+    return {
+      theme: s.theme, themeIcon: s.theme === 'light' ? '\ud83c\udf19' : '\u2600\ufe0f', toggleTheme: this.toggleTheme,
+      role, roleLabel, initials: role === 'owner' ? 'SP' : role === 'manager' ? 'RK' : 'RS',
+      userName: role === 'owner' ? 'Suresh Patil' : role === 'manager' ? 'Ramesh Kumar' : 'Rahul Sharma',
+      phone: '98765 43210',
+      notifPrefs: [
+        { key: 'rent', label: 'Rent reminders', sub: 'Due-date nudges and payment confirmations', on: true, mandatory: true },
+        { key: 'complaints', label: 'Complaint updates', sub: 'Status changes on your reports', on: true },
+        { key: 'announce', label: 'PG announcements', sub: 'Notices from your manager/owner', on: false },
+      ],
+      language: s.language, onLanguageChange: this.onLanguageChange,
+      languages: ['English', 'Hindi', 'Hinglish', 'Kannada', 'Tamil', 'Telugu', 'Marathi', 'Bengali'],
+      backHref: backHrefMap[role],
+      mobileTabs: (mobileTabsMap[role] || []).map(t => ({ ...t, cls: 'bn-item-v2' + (t.active ? ' active' : ''), icon: NAV_ICON[t.label] })),
+    };
+  }
+}
+</script>
+</body>
+</html>
