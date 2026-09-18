@@ -4,6 +4,56 @@ Running log of decisions that change scope, kept next to the code so the
 reasoning doesn't get lost in chat history. Add to this file, don't rewrite
 history in it.
 
+## 2026-09-18 — Phase 1 (Properties/Rooms/Tenants) implemented
+
+**Decision:** Phase 1 is implemented in `mobile/`: Owner Properties (list, add/edit), Rooms (Owner
+floor-grouped with a property switcher and Add Room; Manager flat-list for their current PG), and
+Tenants (Owner whole-portfolio roster; Manager one-PG roster) — add, assign a self-registered pending
+tenant to a bed, and move-out. All staff-initiated only. `flutter analyze` is clean and all 41 tests
+pass (`flutter test`).
+
+**Add Tenant matches the approved design's simple form, not the pre-design same-day/book-ahead
+split.** The 2026-09-15 "New tenant onboarding" decision below describes a two-path model (same-day
+move-in vs. book-ahead, with a bed `hold` state) written *before* the design pass. The actual approved
+screens (`Owner Tenants.dc.html`, `Manager Tenants.dc.html`) show a single simple form instead (name,
+phone, property, room/bed, rent, joining date, status) with no book-ahead toggle or hold state anywhere
+in the Rooms screens either. Per this repo's own reconciliation method ("where the screens and earlier
+docs disagree, the screens win" — `docs/design-readme-reconciliation.md`'s own stated source-of-truth
+rule), Phase 1 matches the screens. The two-path model isn't lost — it stays on record below for
+whenever book-ahead reservations become a real requirement.
+
+**Reconciled two independently-built design prototypes' mock data into one consistent dataset.**
+`Owner Rooms.dc.html` and `Manager Rooms.dc.html` each showed only part of HSR PG's rooms (Owner:
+101/102/201; Manager: those plus A-108/B-204/C-301), and `Owner Tenants.dc.html`/`Manager
+Tenants.dc.html` similarly each listed a different subset of tenants. `MockRoomsRepository` and
+`MockTenantsRepository` merge these into one roster per property so every screen agrees — documented
+in each mock repository's own doc comment, including the specific floor assignments invented to give
+the extra HSR rooms a coherent (if not explicitly designed) floor structure.
+
+**Two real bugs found by actually running the app, not by trusting `flutter analyze`/`flutter test`
+alone:**
+1. `AppScaffold`'s `Center`/`Align`-based width-capping wrapper shrink-wraps to its shortest child
+   whenever handed unbounded height — which a `go_router` `StatefulShellRoute` page can do during a
+   branch transition — collapsing every screen's content to just the bottom-nav's height and centering
+   that small block in the middle of the browser viewport. Neither `flutter analyze` nor the existing
+   widget tests caught this (tests don't exercise real browser/canvas layout the same way); it only
+   showed up as a genuinely blank app when clicked through in a browser. Fixed by replacing
+   `Center`/`ConstrainedBox` with `LayoutBuilder`/`Padding`, which never forces the shrink-wrap failure
+   mode. See `AppScaffold`'s doc comment.
+2. `PrimaryButton`/`SecondaryButton`'s theme sets `minimumSize: Size.fromHeight(...)`, which Flutter
+   reads as an *infinite* minimum width — invisible as the sole child of a `Column` (most call sites),
+   but it starves a `Row` sibling of width. Found live in the pending-tenant "Assign bed" card, where
+   the tenant's name rendered one character per line. Fixed with an `expand: false` escape hatch, and
+   added a regression test (`test/widget/shared/primary_button_test.dart`) since this class of bug is
+   easy to reintroduce at a new call site.
+
+Both are documented here specifically because neither was caught by static analysis or the existing
+test suite — a reminder that "tests pass" and "the app actually renders correctly" are not the same
+claim, per this file's own quality bar.
+
+**Not built in Phase 1 (deliberately, per its own scope):** any Supabase/backend call, Payments,
+Complaints, tenant self-registration, book-ahead reservations.
+
 ## 2026-09-18 — Phase 0 Flutter foundation implemented
 
 **Decision:** Phase 0 (per the phase plan in this file's pivot entry below and `docs/architecture.md`)

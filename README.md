@@ -13,7 +13,8 @@ the resident).
 | Platform decision — mobile-first, Flutter/Dart | ✅ Decided (2026-09-18) |
 | Flutter development environment | ✅ Set up (2026-09-18) — Flutter, JDK, Android SDK, Supabase CLI |
 | Phase 0 — Flutter foundation | ✅ Implemented (2026-09-18) — see below |
-| Phase 1+ — Properties/Rooms/Tenants and later feature phases | ⏳ Not started |
+| Phase 1 — Properties/Rooms/Tenants (Owner + Manager) | ✅ Implemented (2026-09-18) — see below |
+| Phase 2+ — Tenant self-serve onboarding, Payments, Complaints | ⏳ Not started |
 | Database — real schema, RLS, backend integration | ⏳ Deliberately not started (Phase 6) |
 
 **This repository previously contained a Next.js/React web implementation of Phase 0** (design tokens,
@@ -41,13 +42,30 @@ entry for the full rationale.
 - Owner Dashboard, Manager Today, and Tenant Home fully implemented against realistic mock data
   ported from the approved screens' own mock data, each with loading/empty/error states
 - Shared components: StatusChip, StatCard, EmptyState, ErrorState, skeleton loaders, buttons, text
-  field, dialog, quick-action tiles, bottom nav
+  field, dialog, quick-action tiles, bottom nav, CtaCard, ListRowCard
+
+**Phase 1 (Properties/Rooms/Tenants)** — also in `mobile/`, same mock-repository pattern:
+
+- Owner Properties: portfolio list with occupancy bars, add/edit property
+- Rooms: Owner (floor-grouped, property switcher, Add Room) and Manager (flat list for their PG) —
+  vacant beds offer "Assign existing"/"Invite via link" (Manager) or "+ Add tenant" (Owner)
+- Tenants: Owner (whole-portfolio roster, search + property filter) and Manager (one-PG roster,
+  pre-fillable from a Rooms link or a quick action) — add, assign a self-registered pending tenant to
+  a bed, and move-out, all staff-initiated (the tenant-*requested* self-registration path stays
+  excluded, per the open product decision in `docs/design-readme-reconciliation.md` §6.3)
+- `flutter analyze` clean, 41 tests passing (`flutter test`)
+
+Two real bugs were found and fixed by actually running the app in a browser rather than trusting the
+widget tree alone (see `docs/DECISIONS.md`'s Phase 1 entry): a `Center`/`Align` shrink-wrap collapsing
+every screen to its bottom-nav height on web, and a button-in-a-`Row` starving its sibling of width via
+an inherited infinite minimum-width theme default.
 
 **Not yet real:** any backend call (still 100% mock data), CocoaPods (blocked on this machine's Ruby
 version — see the environment table), and the Android debug build hasn't been verified end-to-end on
 this machine — Gradle's first-time setup (distribution + AGP + Kotlin compiler + per-arch engine
 jars) needs several GB this machine doesn't reliably have free right now; `flutter analyze` and
-`flutter test` are both clean, this is specifically the `flutter build apk` step. See
+`flutter test` are both clean, and the app has been verified running correctly via `flutter build web`
+in a browser — this remaining gap is specifically the `flutter build apk` step. See
 `docs/DECISIONS.md`'s 2026-09-18 Phase 0 entry.
 
 ## Completed design scope (approved, not yet implemented)
