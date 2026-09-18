@@ -124,11 +124,8 @@ class _ManagerTodayContent extends ConsumerWidget {
                       icon: Icons.person_add_alt_outlined,
                       label: 'Add Tenant',
                       tone: SemanticTone.accent,
-                      onTap: () => notifyNotBuiltYet(
-                        context,
-                        feature: 'Add Tenant',
-                        phase: 'Phase 1',
-                      ),
+                      onTap: () =>
+                          context.push('${AppRoute.managerTenants}?add=1'),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.space2),

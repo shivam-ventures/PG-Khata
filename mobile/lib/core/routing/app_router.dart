@@ -11,6 +11,12 @@ import '../../features/auth/presentation/phone_entry_screen.dart';
 import '../../features/dashboard/presentation/manager/manager_today_screen.dart';
 import '../../features/dashboard/presentation/owner/owner_dashboard_screen.dart';
 import '../../features/dashboard/presentation/tenant/tenant_home_screen.dart';
+import '../../features/properties/presentation/owner_properties_screen.dart';
+import '../../features/rooms/presentation/manager/manager_rooms_screen.dart';
+import '../../features/rooms/presentation/owner/owner_rooms_screen.dart';
+import '../../features/tenants/presentation/manager/manager_tenants_screen.dart';
+import '../../features/tenants/presentation/owner/owner_tenants_screen.dart';
+import '../../shared/widgets/not_built_yet.dart';
 import '../../shared/widgets/placeholder_screen.dart';
 import '../../shared/widgets/role_shell.dart';
 import '../../shared/widgets/role_bottom_nav.dart';
@@ -76,10 +82,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.ownerProperties,
-                builder: (context, state) => const PlaceholderScreen(
-                  title: 'Properties',
-                  comingInPhase: 'Phase 1',
-                ),
+                builder: (context, state) => const OwnerPropertiesScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'rooms',
+                    builder: (context, state) => OwnerRoomsScreen(
+                      initialPropertyId: state.uri.queryParameters['property'],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -87,10 +98,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.ownerTenants,
-                builder: (context, state) => const PlaceholderScreen(
-                  title: 'Tenants',
-                  comingInPhase: 'Phase 1',
-                ),
+                builder: (context, state) => const OwnerTenantsScreen(),
               ),
             ],
           ),
@@ -131,10 +139,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.managerRooms,
-                builder: (context, state) => const PlaceholderScreen(
-                  title: 'Rooms',
-                  comingInPhase: 'Phase 1',
-                ),
+                builder: (context, state) => const ManagerRoomsScreen(),
               ),
             ],
           ),
@@ -142,11 +147,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.managerMore,
-                builder: (context, state) => const AccountMenuScreen(),
+                builder: (context, state) => AccountMenuScreen(
+                  extraMenuItems: [
+                    AccountMenuItem(
+                      icon: Icons.people_outline,
+                      label: 'Tenants',
+                      onTap: () => context.push(AppRoute.managerTenants),
+                    ),
+                    AccountMenuItem(
+                      icon: Icons.report_problem_outlined,
+                      label: 'Complaints',
+                      onTap: () => notifyNotBuiltYet(
+                        context,
+                        feature: 'Complaints',
+                        phase: 'Phase 5',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoute.managerTenants,
+        builder: (context, state) => ManagerTenantsScreen(
+          initialRoom: state.uri.queryParameters['room'],
+          initialBed: state.uri.queryParameters['bed'],
+          autoOpenAdd: state.uri.queryParameters['add'] == '1',
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) =>
