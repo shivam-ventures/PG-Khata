@@ -1,5 +1,10 @@
 # Domain model notes (frontend discovery pass — not a schema)
 
+> **Note (Flutter pivot):** the entities/relationships below were discovered while implementing the
+> design against a TypeScript mock layer (since discarded along with the Next.js app — see
+> `DECISIONS.md`). The discoveries themselves are platform-agnostic and still fully valid; they'll be
+> re-expressed as Dart classes in `mobile/lib/features/*/domain/` instead of `src/types/domain.ts`.
+
 Written while implementing the approved UI design against mock data. Captures the entities and
 relationships the *design* actually requires, discovered screen-by-screen. **This is not a database
 schema** — no tables, keys, or constraints are decided here. `supabase/schema.sql` is Phase 0's

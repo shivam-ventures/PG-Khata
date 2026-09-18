@@ -1,4 +1,11 @@
-# Design system — quick reference
+# Design system — quick reference (superseded, kept for history)
+
+> **Superseded at the Flutter pivot.** Everything below describes the discarded Next.js/Tailwind
+> implementation's token setup — kept for historical reference, not as current guidance. The real
+> design-system source of truth is now the approved handoff at
+> `design/design_handoff_pg_khata_app/` (its `README.md` + `screens/_ds/*/styles.css` +
+> `screens/tokens-extra.css`), translated into a Flutter `ThemeData`/`ColorScheme` per
+> `docs/architecture.md`'s "core/theme" section. Don't add new Tailwind-flavored guidance here.
 
 Full rationale lives in the "MVP Build Plan, Design System & Engineering
 Architecture" document from the planning phase. This file is the fast

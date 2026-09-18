@@ -1,5 +1,10 @@
 # README ↔ Design reconciliation
 
+> **Note (Flutter pivot):** written while the app was still assumed to be Next.js/web. The platform
+> changed to Flutter mobile shortly after this doc was written, but nothing below is platform-specific
+> — it's entirely about product scope (README vs. design), not tech stack. Still fully valid; no
+> rework needed.
+
 Written when the "PG Khata product design" handoff (18 screens, `design_handoff_pg_khata_app/`) was
 received and compared against the README/product plan and `supabase/schema.sql` as they stood at the
 end of Phase 0. This is a point-in-time reconciliation, not a living doc — once a decision below is

@@ -4,6 +4,38 @@ Running log of decisions that change scope, kept next to the code so the
 reasoning doesn't get lost in chat history. Add to this file, don't rewrite
 history in it.
 
+## 2026-09-18 — Restart as a Flutter mobile app; discard the Next.js web implementation
+
+**Decision:** PG Khata is a mobile application, not a web-first product. The Next.js/React/Tailwind
+implementation built through Phase 0 and the subsequent design-implementation pass is discarded.
+Implementation restarts from scratch in Flutter/Dart, targeting Android and iOS, against the same
+approved design and the same eventual Supabase/PostgreSQL backend.
+
+**Why:** The web-first assumption behind Phase 0 no longer reflects the actual product requirement.
+The approved design itself is a 480px mobile-shell, bottom-nav, dialog-driven UI — a native mobile
+runtime serves that better than a responsive web app in the long run (real push notifications, offline
+potential, app-store presence), and the team's actual intent was mobile all along.
+
+**What was preserved:** all product documentation and decisions (this file), the design/README
+reconciliation (`docs/design-readme-reconciliation.md`), the domain model discovery notes
+(`docs/domain-model-notes.md`), the Supabase schema (`supabase/schema.sql`, unchanged), and the
+approved design handoff itself — copied into the repo under `design/` so it's no longer only an
+external zip file. See `docs/architecture.md` for the new Flutter architecture and state-management
+choice (Riverpod).
+
+**What was discarded:** `src/` (Next.js app, React components, Tailwind config, the TypeScript
+mock-data layer and domain types — all superseded by the same thinking re-expressed in Dart later),
+`package.json`/`next.config.ts`/etc., and an earlier same-day React Native/Expo scaffold that was
+scaffolded but never built out before this decision superseded it too.
+
+**Safety:** a full git snapshot of the pre-pivot state was committed before anything was removed
+(`git log` shows the snapshot commit immediately before the removal commit) — nothing is
+unrecoverable.
+
+**Revisit when:** if a web-based Owner dashboard is ever wanted alongside the mobile app (common for
+this kind of SaaS), it can be rebuilt later against the same Supabase backend — this decision doesn't
+rule that out, it just means the *primary* product is mobile-first from here on.
+
 ## 2026-09-14 — Skip Aadhaar e-KYC for Phase 0-2; store a plain ID photo instead
 
 **Decision:** Tenant identity verification in the MVP is a plain uploaded
