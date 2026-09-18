@@ -4,6 +4,50 @@ Running log of decisions that change scope, kept next to the code so the
 reasoning doesn't get lost in chat history. Add to this file, don't rewrite
 history in it.
 
+## 2026-09-18 — Phase 0 Flutter foundation implemented
+
+**Decision:** Phase 0 (per the phase plan in this file's pivot entry below and `docs/architecture.md`)
+is implemented in `mobile/`: project scaffold, theme, `go_router` role-aware navigation, Riverpod +
+repository-per-feature pattern with mock implementations, mock phone/OTP auth, and the Owner Dashboard/
+Manager Today/Tenant Home screens against realistic mock data ported from the approved design's own
+mock data. `flutter analyze` is clean and all 29 tests pass (`flutter test`).
+
+**Design tokens — `tokens-extra.css` wins, not the base Modernist tokens.** The design handoff's base
+`_ds/modernist-*/styles.css` is red/Archivo/0px-radius, but `screens/tokens-extra.css` loads after it
+and overrides colors/fonts/radius for the actual app (Indigo accent, Manrope/Inter, 8/12/20px radii,
+full semantic success/warning/danger/info scale, dark-theme values too) — that's what `Owner
+Dashboard.dc.html`/`Manager Today.dc.html`/`Tenant Home.dc.html` actually render with via CSS cascade,
+and what `AppTheme` in `mobile/lib/core/theme/` encodes. `docs/DESIGN_SYSTEM.md`'s numbers are already
+marked superseded, so this isn't a new conflict, just the specific token source used.
+
+**Mock auth resolves a role from seeded demo phone numbers, not self-registration.** There's no
+backend yet to look up a real role, and building self-registration/role-self-select would mean
+implementing the one product decision explicitly deferred in
+`docs/design-readme-reconciliation.md` §6.3. `MockAuthRepository` instead maps three demo phone
+numbers (matching the design's own mock data: Anita Sharma/Owner, Ramesh Kumar/Manager, Rahul
+Sharma/Tenant) to roles, with any other number signing in as a new Tenant. This is a Phase-0-only
+demo affordance, not a product feature — it disappears once Supabase resolves a real role in Phase 6.
+
+**Removed `ndkVersion = flutter.ndkVersion` from `android/app/build.gradle.kts`.** The Flutter
+template sets this by default, and recent AGP versions verify/auto-install that exact NDK release
+(a ~2.8GB download) as soon as it's set — regardless of whether anything actually needs the NDK. This
+app and its current dependencies (`go_router`, `flutter_riverpod`, `google_fonts`, `url_launcher`) have
+no native/C++ code, so the line was pure downside on a disk-constrained machine. Add it back if a
+future plugin genuinely needs NDK compilation.
+
+**Android build not yet verified end-to-end on this machine.** `flutter build apk --debug` failed
+twice from `No space left on device` — Gradle's first-time setup for this project (the Gradle
+distribution, AGP, Kotlin compiler, and per-architecture Flutter engine jars) needs several GB of
+headroom this machine didn't reliably have (5-6GB free at the time). Both failures were recovered from
+without data loss (a partially-downloaded NDK archive and Gradle's own transform cache were cleaned
+up), but this remains a known gap: the code is verified via `flutter analyze`/`flutter test`, not via
+an actual built APK. **Revisit when:** more disk space is freed, or the Gradle/Pub caches are
+redirected to an external drive.
+
+**Not built in Phase 0 (deliberately, per its own scope):** any Supabase/backend call, CocoaPods
+(blocked on this machine's Ruby version, and moot without Xcode), any screen beyond the three role
+homes (everything else is a labeled placeholder so navigation stays whole), self-registration.
+
 ## 2026-09-18 — Restart as a Flutter mobile app; discard the Next.js web implementation
 
 **Decision:** PG Khata is a mobile application, not a web-first product. The Next.js/React/Tailwind

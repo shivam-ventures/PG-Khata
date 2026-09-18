@@ -11,9 +11,10 @@ the resident).
 |---|---|
 | Design — full-app UI design for Owner/Manager/Tenant | ✅ Complete (approved, 18 screens) |
 | Platform decision — mobile-first, Flutter/Dart | ✅ Decided (2026-09-18) |
-| Flutter development environment | ⏳ Not yet set up on this machine — see below |
-| Flutter app implementation | ⏳ Not started — was a Next.js/React implementation, discarded |
-| Database — real schema, RLS, backend integration | ⏳ Deliberately not started |
+| Flutter development environment | ✅ Set up (2026-09-18) — Flutter, JDK, Android SDK, Supabase CLI |
+| Phase 0 — Flutter foundation | ✅ Implemented (2026-09-18) — see below |
+| Phase 1+ — Properties/Rooms/Tenants and later feature phases | ⏳ Not started |
+| Database — real schema, RLS, backend integration | ⏳ Deliberately not started (Phase 6) |
 
 **This repository previously contained a Next.js/React web implementation of Phase 0** (design tokens,
 OTP auth, empty dashboards). That implementation has been **discarded** — the product's actual
@@ -24,9 +25,30 @@ entry for the full rationale.
 
 ## What's actually implemented in code right now
 
-**Nothing yet.** The Flutter app hasn't been created — the Flutter SDK isn't installed on this
-machine yet (see the environment status below). This section will be updated as real Dart code lands;
-until then, don't trust any claim of "done" outside this table.
+**Phase 0 (Flutter foundation)** — in `mobile/`:
+
+- Flutter project scaffold (Android + iOS targets), `flutter analyze` clean, 29 tests passing
+  (`flutter test`)
+- Design system translated into a Flutter `ThemeData`/`ColorScheme` from the approved screens'
+  actual tokens (`tokens-extra.css` — see `docs/architecture.md`), light + dark
+- `go_router` role-aware navigation: phone/OTP login, then role-specific bottom-nav shells for
+  Owner/Manager/Tenant, each branch either a real screen or a labeled placeholder for a later phase
+- Riverpod state management throughout; a `Repository` interface + mock implementation per feature
+  (`AuthRepository`/`MockAuthRepository`, `DashboardRepository`/`MockDashboardRepository`), so a
+  Supabase-backed implementation is a Phase 6 swap behind the same interface
+- Mock phone/OTP auth (send, verify, invalid-code, resend cooldown, logout, session state) — see
+  `MockAuthRepository`'s doc comment for how it resolves a role without a real backend yet
+- Owner Dashboard, Manager Today, and Tenant Home fully implemented against realistic mock data
+  ported from the approved screens' own mock data, each with loading/empty/error states
+- Shared components: StatusChip, StatCard, EmptyState, ErrorState, skeleton loaders, buttons, text
+  field, dialog, quick-action tiles, bottom nav
+
+**Not yet real:** any backend call (still 100% mock data), CocoaPods (blocked on this machine's Ruby
+version — see the environment table), and the Android debug build hasn't been verified end-to-end on
+this machine — Gradle's first-time setup (distribution + AGP + Kotlin compiler + per-arch engine
+jars) needs several GB this machine doesn't reliably have free right now; `flutter analyze` and
+`flutter test` are both clean, this is specifically the `flutter build apk` step. See
+`docs/DECISIONS.md`'s 2026-09-18 Phase 0 entry.
 
 ## Completed design scope (approved, not yet implemented)
 
@@ -86,23 +108,27 @@ Flutter architecture, state-management choice, and the offline/notifications ass
 
 ## Development environment status
 
-Checked on this machine (2026-09-18) — **nothing below has been installed automatically**; installs
-happen only once explicitly authorized.
+Checked on this machine (2026-09-18).
 
 | Tool | Status | Needed for |
 |---|---|---|
 | Git | ✅ Installed (2.50.1) | Version control |
-| Flutter SDK | ❌ Not installed | Everything — the app can't be created without it |
-| Dart | ❌ Not installed (ships with the Flutter SDK) | Compiling/running the app |
-| Homebrew | ❌ Not installed | The easiest install path for the tools below |
-| Java/JDK | ❌ Not installed | Android builds (Gradle needs a JDK) |
+| Flutter SDK | ✅ Installed (3.47.4 stable) | Everything |
+| Dart | ✅ Installed (3.13.3, ships with Flutter) | Compiling/running the app |
+| Java/JDK | ✅ Installed (Temurin 17.0.20.1) | Android builds (Gradle needs a JDK) |
+| Android SDK | ✅ Installed (platform-tools, build-tools 34.0.0, platforms 34 & 36, licenses accepted) | Android builds |
 | Xcode (full) | ❌ Not installed (only Command Line Tools) | iOS builds, iOS Simulator — **must be installed by you**, it needs an Apple ID sign-in via the App Store or developer.apple.com, which nobody but you should do |
-| Android Studio | ❌ Not installed | Easiest way to manage the Android SDK/emulator (a command-line-only SDK setup is possible instead) |
-| CocoaPods | ❌ Not installed | Linking native iOS dependencies in Flutter builds |
-| VS Code | ❌ Not installed | Optional — any editor with the Flutter/Dart plugin works |
+| CocoaPods | ❌ Blocked — needs Ruby ≥3.0, this machine's system Ruby is 2.6.10 | Linking native iOS dependencies — not actionable until Xcode exists anyway |
+| Supabase CLI | ✅ Installed (2.117.0) | Phase 6 backend work |
+| Android emulator | ⏭️ Skipped by design — use a physical Android device (USB debugging) instead, to conserve this machine's limited disk space |
+| `flutter analyze` / `flutter test` | ✅ Clean — 0 issues, 29/29 tests passing | Verifying the code itself |
+| `flutter build apk --debug` | ⚠️ Not yet verified — see below | Verifying the full Android toolchain end-to-end |
 
-Once the Flutter SDK and platform tooling are in place, `mobile/` will hold the app — see
-`docs/architecture.md` for its planned internal structure.
+**On the unverified Android build:** Gradle's first-time setup for this project (the Gradle
+distribution, Android Gradle Plugin, Kotlin compiler, and per-architecture Flutter engine jars) needs
+several GB of headroom, and this machine's disk ran out of free space twice while attempting it — see
+`docs/DECISIONS.md`'s 2026-09-18 Phase 0 entry. The code itself is verified via `flutter analyze` and
+`flutter test`; only this one build-verification step is pending more free disk space.
 
 ## Project structure
 
@@ -113,7 +139,7 @@ docs/                  Decisions log, design/README reconciliation, domain model
 supabase/schema.sql    Database schema + RLS policies from the pre-pivot plan — reflects an older
                        domain model (see the reconciliation doc); revisited deliberately once the
                        database phase starts, not reused as-is
-mobile/                The Flutter app (created once the SDK is installed)
+mobile/                The Flutter app — Phase 0 foundation implemented, see docs/architecture.md
 ```
 
 ## Important product decisions
