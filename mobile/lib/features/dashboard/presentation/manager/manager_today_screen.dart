@@ -12,7 +12,8 @@ import '../../../../core/utils/date_label_formatter.dart';
 import '../../../../core/utils/greeting_formatter.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/dashboard_header.dart';
-import '../../../../shared/widgets/not_built_yet.dart';
+import '../../../../shared/widgets/empty_state.dart';
+import '../../../../shared/widgets/pg_context_bar.dart';
 import '../../../../shared/widgets/quick_action_button.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/semantic_tone.dart';
@@ -45,7 +46,6 @@ class _ManagerTodayContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     return Column(
       children: [
         DashboardHeader(
@@ -53,30 +53,7 @@ class _ManagerTodayContent extends ConsumerWidget {
           greeting: GreetingFormatter.greeting(data.managerFirstName),
           onSettingsTap: () => context.go(AppRoute.managerMore),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.space4,
-            vertical: AppSpacing.space2,
-          ),
-          decoration: BoxDecoration(
-            color: context.appColors.surfaceAlt,
-            border: Border(
-              bottom: BorderSide(color: context.appColors.divider),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _PgSwitcher(options: data.pgOptions, currentId: data.currentPgId),
-              Text(
-                'Managing this PG',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: context.appColors.textMuted,
-                ),
-              ),
-            ],
-          ),
-        ),
+        const PgContextBar(),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.space4),
@@ -143,11 +120,7 @@ class _ManagerTodayContent extends ConsumerWidget {
                       icon: Icons.report_problem_outlined,
                       label: 'Complaints',
                       tone: SemanticTone.warning,
-                      onTap: () => notifyNotBuiltYet(
-                        context,
-                        feature: 'Complaints',
-                        phase: 'Phase 5',
-                      ),
+                      onTap: () => context.push(AppRoute.managerComplaints),
                     ),
                   ),
                 ],
@@ -199,11 +172,7 @@ class _ManagerTodayContent extends ConsumerWidget {
                   SectionHeader(
                     title: 'Open complaints',
                     actionLabel: 'See all',
-                    onAction: () => notifyNotBuiltYet(
-                      context,
-                      feature: 'Complaints',
-                      phase: 'Phase 5',
-                    ),
+                    onAction: () => context.push(AppRoute.managerComplaints),
                   ),
                   for (final task in data.complaintTasks)
                     Padding(
@@ -219,69 +188,15 @@ class _ManagerTodayContent extends ConsumerWidget {
                     ),
                 ],
               ] else
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppSpacing.space8,
-                  ),
-                  child: Center(
-                    child: Text(
-                      'All caught up for today.',
-                      style: AppTextStyles.body.copyWith(
-                        color: context.appColors.textMuted,
-                      ),
-                    ),
-                  ),
+                const EmptyState(
+                  icon: Icons.check_circle_outline,
+                  title: 'All caught up for today.',
+                  message: 'No rent to collect and no open complaints here.',
                 ),
             ],
           ),
         ),
       ],
-    );
-  }
-}
-
-class _PgSwitcher extends ConsumerWidget {
-  const _PgSwitcher({required this.options, required this.currentId});
-
-  final List<PgOption> options;
-  final String currentId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final current = options.firstWhere(
-      (o) => o.id == currentId,
-      orElse: () => options.first,
-    );
-    return PopupMenuButton<String>(
-      initialValue: currentId,
-      onSelected: (id) =>
-          ref.read(managerSelectedPgIdProvider.notifier).select(id),
-      itemBuilder: (context) => [
-        for (final option in options)
-          PopupMenuItem(value: option.id, child: Text(option.name)),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space3,
-          vertical: AppSpacing.space2,
-        ),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          border: Border.all(color: context.appColors.divider),
-          borderRadius: AppRadius.smAll,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              current.name,
-              style: AppTextStyles.rowTitle.copyWith(fontSize: 13),
-            ),
-            const SizedBox(width: AppSpacing.space1),
-            const Icon(Icons.expand_more, size: 18),
-          ],
-        ),
-      ),
     );
   }
 }

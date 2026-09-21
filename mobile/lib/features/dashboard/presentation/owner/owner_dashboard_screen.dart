@@ -17,7 +17,9 @@ import '../../../../shared/widgets/semantic_tone.dart';
 import '../../../../shared/widgets/skeleton.dart';
 import '../../../../shared/widgets/stat_card.dart';
 import '../../../../shared/widgets/status_chip.dart';
+import '../../../properties/presentation/widgets/import_properties_dialog.dart';
 import '../../application/dashboard_providers.dart';
+import '../../domain/dashboard_stat.dart';
 import '../../domain/owner_dashboard_data.dart';
 import 'widgets/attention_card.dart';
 
@@ -59,16 +61,13 @@ class _OwnerDashboardContent extends StatelessWidget {
               : Center(
                   child: EmptyState(
                     icon: Icons.home_work_outlined,
-                    title: 'No properties yet',
+                    title: 'No PGs yet',
                     message: "Let's set up your first PG — add rooms and beds, then invite a manager or tenants.",
-                    primaryActionLabel: 'Add Property',
+                    primaryActionLabel: 'Add PG',
                     onPrimaryAction: () => context.go(AppRoute.ownerProperties),
                     secondaryActionLabel: 'Import from Excel',
-                    onSecondaryAction: () => notifyNotBuiltYet(
-                      context,
-                      feature: 'Bulk import',
-                      phase: 'a later phase',
-                    ),
+                    onSecondaryAction: () =>
+                        showImportPropertiesDialog(context),
                   ),
                 ),
         ),
@@ -88,7 +87,18 @@ class _PopulatedBody extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.space4),
       children: [
         if (data.hasAttentionItems) ...[
-          AttentionCard(items: data.attentionItems),
+          AttentionCard(
+            items: data.attentionItems,
+            onView: (destination) => switch (destination) {
+              'payments' => context.push(AppRoute.ownerPayments),
+              'rooms' => context.go(AppRoute.ownerProperties),
+              _ => notifyNotBuiltYet(
+                context,
+                feature: 'Complaints',
+                phase: 'a later phase',
+              ),
+            },
+          ),
           const SizedBox(height: AppSpacing.space6),
         ],
         Row(
@@ -98,11 +108,7 @@ class _PopulatedBody extends StatelessWidget {
                 icon: Icons.payments_outlined,
                 label: 'Payments',
                 tone: SemanticTone.success,
-                onTap: () => notifyNotBuiltYet(
-                  context,
-                  feature: 'Payments',
-                  phase: 'Phase 3',
-                ),
+                onTap: () => context.push(AppRoute.ownerPayments),
               ),
             ),
             const SizedBox(width: AppSpacing.space2),
@@ -114,7 +120,7 @@ class _PopulatedBody extends StatelessWidget {
                 onTap: () => notifyNotBuiltYet(
                   context,
                   feature: 'Complaints',
-                  phase: 'Phase 5',
+                  phase: 'a later phase',
                 ),
               ),
             ),
@@ -124,18 +130,14 @@ class _PopulatedBody extends StatelessWidget {
                 icon: Icons.bar_chart_outlined,
                 label: 'Reports',
                 tone: SemanticTone.info,
-                onTap: () => notifyNotBuiltYet(
-                  context,
-                  feature: 'Reports',
-                  phase: 'a later phase',
-                ),
+                onTap: () => context.push(AppRoute.ownerReports),
               ),
             ),
             const SizedBox(width: AppSpacing.space2),
             Expanded(
               child: QuickActionButton(
                 icon: Icons.apartment_outlined,
-                label: 'Properties',
+                label: 'PGs',
                 tone: SemanticTone.accent,
                 onTap: () => context.go(AppRoute.ownerProperties),
               ),
@@ -143,29 +145,30 @@ class _PopulatedBody extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.space6),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.space3,
-          crossAxisSpacing: AppSpacing.space3,
-          // Just tall enough for StatCard's icon+label+value+sub column —
-          // 1.5 overflowed by under a pixel at some viewport widths.
-          childAspectRatio: 1.35,
-          children: [
-            for (final stat in data.stats)
-              StatCard(
-                icon: stat.icon,
-                label: stat.label,
-                value: stat.value,
-                sub: stat.sub,
-                tone: stat.tone,
-              ),
-          ],
-        ),
+        // A fixed childAspectRatio here kept getting outgrown by real
+        // (longer, locale/font-dependent) stat text — StatCard already
+        // sizes itself to its own content, so pairing plain Rows lets that
+        // work instead of re-guessing a magic ratio every time it breaks.
+        for (var i = 0; i < data.stats.length; i += 2)
+          Padding(
+            padding: EdgeInsets.only(
+              bottom: i + 2 < data.stats.length ? AppSpacing.space3 : 0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _StatCardFor(data.stats[i])),
+                const SizedBox(width: AppSpacing.space3),
+                if (i + 1 < data.stats.length)
+                  Expanded(child: _StatCardFor(data.stats[i + 1]))
+                else
+                  const Expanded(child: SizedBox.shrink()),
+              ],
+            ),
+          ),
         const SizedBox(height: AppSpacing.space6),
         SectionHeader(
-          title: 'Properties',
+          title: 'PGs',
           actionLabel: 'View all',
           onAction: () => context.go(AppRoute.ownerProperties),
         ),
@@ -178,6 +181,23 @@ class _PopulatedBody extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _StatCardFor extends StatelessWidget {
+  const _StatCardFor(this.stat);
+
+  final DashboardStat stat;
+
+  @override
+  Widget build(BuildContext context) {
+    return StatCard(
+      icon: stat.icon,
+      label: stat.label,
+      value: stat.value,
+      sub: stat.sub,
+      tone: stat.tone,
     );
   }
 }

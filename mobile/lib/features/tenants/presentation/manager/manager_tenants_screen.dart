@@ -10,16 +10,29 @@ import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/cta_card.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/list_row_card.dart';
+import '../../../../shared/widgets/pg_context_bar.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../../../shared/widgets/skeleton.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../../dashboard/application/dashboard_providers.dart';
+import '../../../properties/application/properties_providers.dart';
 import '../../application/tenants_providers.dart';
 import '../../domain/tenant_record.dart';
 import '../widgets/add_edit_manager_tenant_dialog.dart';
+import '../widgets/import_tenants_dialog.dart';
 import '../widgets/move_out_dialog.dart';
 
-const _pgNames = {'hsr': 'HSR PG', 'ind': 'Indiranagar PG'};
+/// Resolves a property's display name from the real roster — falling back
+/// to the raw id only if the properties list hasn't loaded yet, so this
+/// never drifts out of sync with what Owner Properties / [PgContextBar] show.
+String _propertyName(WidgetRef ref, String propertyId) {
+  final properties = ref.read(propertiesProvider).value;
+  if (properties == null) return propertyId;
+  for (final property in properties) {
+    if (property.id == propertyId) return property.name;
+  }
+  return propertyId;
+}
 
 /// The Manager's tenant roster for their current PG. Mirrors `Manager
 /// Tenants.dc.html`. Reached from Manager Today's "Add Tenant" quick action
@@ -54,7 +67,7 @@ class _ManagerTenantsScreenState extends ConsumerState<ManagerTenantsScreen> {
         showAddManagerTenantDialog(
           context,
           propertyId: propertyId,
-          propertyName: _pgNames[propertyId] ?? propertyId,
+          propertyName: _propertyName(ref, propertyId),
           initialRoomBed: widget.initialRoom != null
               ? '${widget.initialRoom} - ${widget.initialBed}'
               : null,
@@ -96,6 +109,7 @@ class _ManagerTenantsScreenState extends ConsumerState<ManagerTenantsScreen> {
               ],
             ),
           ),
+          const PgContextBar(),
           Expanded(
             child: AsyncValueView(
               value: tenantsAsync,
@@ -127,7 +141,7 @@ class _TenantsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final propertyName = _pgNames[propertyId] ?? propertyId;
+    final propertyName = _propertyName(ref, propertyId);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.space4),
       children: [
@@ -136,6 +150,17 @@ class _TenantsBody extends ConsumerWidget {
           title: 'Add tenant',
           subtitle: 'Manually add someone with a known bed & rent',
           onTap: () => showAddManagerTenantDialog(
+            context,
+            propertyId: propertyId,
+            propertyName: propertyName,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space2),
+        CtaCard(
+          icon: Icons.upload_file_outlined,
+          title: 'Import tenants',
+          subtitle: 'Bulk-add from a CSV file',
+          onTap: () => showImportTenantsDialog(
             context,
             propertyId: propertyId,
             propertyName: propertyName,
@@ -178,7 +203,8 @@ class _TenantsBody extends ConsumerWidget {
               child: ListRowCard(
                 title: tenant.name,
                 subtitle:
-                    '${tenant.roomBed} · ${CurrencyFormatter.rupees(tenant.rent)}',
+                    '${tenant.roomBed} · ${CurrencyFormatter.rupees(tenant.rent)}'
+                    '${tenant.depositAmount == null ? '' : ' · ${CurrencyFormatter.rupees(tenant.depositAmount!)} deposit'}',
                 trailing: StatusChip(
                   label: tenant.status.label,
                   tone: tenant.status.tone,

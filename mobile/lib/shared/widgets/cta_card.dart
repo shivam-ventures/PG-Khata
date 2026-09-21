@@ -21,59 +21,67 @@ class CtaCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: context.appColors.accent100,
-      borderRadius: AppRadius.mdAll,
-      child: InkWell(
+    final isDisabled = onTap == null;
+    return Opacity(
+      opacity: isDisabled ? 0.6 : 1,
+      child: Material(
+        color: context.appColors.accent100,
         borderRadius: AppRadius.mdAll,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.mdAll,
-            boxShadow: AppShadows.of(theme.brightness),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: AppRadius.smAll,
+        child: InkWell(
+          borderRadius: AppRadius.mdAll,
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: AppRadius.mdAll,
+              boxShadow: AppShadows.of(theme.brightness),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: AppRadius.smAll,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 18,
+                    color: theme.colorScheme.onPrimary,
+                  ),
                 ),
-                child: Icon(icon, size: 18, color: theme.colorScheme.onPrimary),
-              ),
-              const SizedBox(width: AppSpacing.space3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTextStyles.rowTitle.copyWith(
-                        fontSize: 15,
-                        color: context.appColors.accent700,
+                const SizedBox(width: AppSpacing.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTextStyles.rowTitle.copyWith(
+                          fontSize: 15,
+                          color: context.appColors.accent700,
+                        ),
                       ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        fontSize: 12,
-                        color: context.appColors.textSecondary,
+                      Text(
+                        subtitle,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          fontSize: 12,
+                          color: context.appColors.textSecondary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right, color: context.appColors.accent700),
-            ],
+                Icon(Icons.chevron_right, color: context.appColors.accent700),
+              ],
+            ),
           ),
         ),
       ),

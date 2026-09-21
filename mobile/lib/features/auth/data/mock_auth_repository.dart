@@ -29,10 +29,14 @@ class MockAuthRepository implements AuthRepository {
       phone: '9876500000',
       role: UserRole.manager,
     ),
-    '9000000001': AppUser(
+    // Matches Rahul Sharma's own phone in the seeded tenant roster
+    // (`MockTenantsRepository`, t7 — HSR PG, B-204) so this demo login
+    // resolves to a real tenancy via `currentTenantRecordProvider`'s
+    // phone match, instead of a demo identity with nothing behind it.
+    '9822233445': AppUser(
       id: 'demo-tenant',
       name: 'Rahul Sharma',
-      phone: '9000000001',
+      phone: '9822233445',
       role: UserRole.tenant,
     ),
   };

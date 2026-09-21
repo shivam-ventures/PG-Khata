@@ -26,7 +26,7 @@ class TenantHomeData {
     required this.pgAddress,
     required this.room,
     required this.managerName,
-    required this.managerPhone,
+    this.managerPhone,
     required this.rentAmountLabel,
     required this.dueLabel,
     required this.nextDueDateLabel,
@@ -46,7 +46,7 @@ class TenantHomeData {
   final String pgAddress;
   final String room;
   final String managerName;
-  final String managerPhone;
+  final String? managerPhone;
   final String rentAmountLabel;
 
   /// Shown on the due-soon/overdue banner, e.g. "Rent due in 5 days".

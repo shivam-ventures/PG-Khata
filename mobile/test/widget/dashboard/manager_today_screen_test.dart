@@ -1,64 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pg_khata/core/errors/result.dart';
 import 'package:pg_khata/core/theme/app_theme.dart';
-import 'package:pg_khata/features/dashboard/application/dashboard_providers.dart';
-import 'package:pg_khata/features/dashboard/data/dashboard_repository.dart';
-import 'package:pg_khata/features/dashboard/domain/manager_today_data.dart';
-import 'package:pg_khata/features/dashboard/domain/owner_dashboard_data.dart';
-import 'package:pg_khata/features/dashboard/domain/tenant_home_data.dart';
+import 'package:pg_khata/features/auth/application/auth_controller.dart';
+import 'package:pg_khata/features/auth/domain/app_user.dart';
+import 'package:pg_khata/features/auth/domain/user_role.dart';
+import 'package:pg_khata/features/complaints/application/complaints_providers.dart';
 import 'package:pg_khata/features/dashboard/presentation/manager/manager_today_screen.dart';
+import 'package:pg_khata/features/payments/application/payments_providers.dart';
+import 'package:pg_khata/features/payments/domain/payment_method.dart';
+import 'package:pg_khata/features/payments/domain/payment_status.dart';
+import 'package:pg_khata/features/payments/domain/rent_payment.dart';
+import 'package:pg_khata/features/properties/application/properties_providers.dart';
+import 'package:pg_khata/features/properties/domain/property.dart';
+import 'package:pg_khata/features/rooms/application/rooms_providers.dart';
 
-class _FakeDashboardRepository implements DashboardRepository {
-  _FakeDashboardRepository(this.data);
-
-  final ManagerTodayData data;
-
+class _FixedAuthController extends AuthController {
+  _FixedAuthController(this._user);
+  final AppUser? _user;
   @override
-  Future<Result<OwnerDashboardData>> fetchOwnerDashboard() =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<ManagerTodayData>> fetchManagerToday({required String pgId}) =>
-      Future.value(Ok(data));
-
-  @override
-  Future<Result<TenantHomeData>> fetchTenantHome() =>
-      throw UnimplementedError();
+  Future<AppUser?> build() async => _user;
 }
 
-const _withTasks = ManagerTodayData(
-  managerFirstName: 'Ramesh',
-  pgOptions: [PgOption(id: 'hsr', name: 'HSR PG')],
-  currentPgId: 'hsr',
-  occupancyLabel: '18/20',
-  pendingLabel: '₹25,000',
-  complaintsCountLabel: '2 open',
-  rentTasks: [
-    RentTask(tenantName: 'Rahul Sharma', room: 'B-204', amountLabel: '₹8,500'),
-  ],
-  complaintTasks: [],
+const _manager = AppUser(
+  id: 'demo-manager',
+  name: 'Ramesh Kumar',
+  phone: '9876500000',
+  role: UserRole.manager,
 );
 
-const _noTasks = ManagerTodayData(
-  managerFirstName: 'Ramesh',
-  pgOptions: [PgOption(id: 'ind', name: 'Indiranagar PG')],
-  currentPgId: 'ind',
-  occupancyLabel: '1/1',
-  pendingLabel: '₹0',
-  complaintsCountLabel: '0 open',
-  rentTasks: [],
-  complaintTasks: [],
+RentPayment _payment(String id, {required PaymentStatus status}) => RentPayment(
+  id: id,
+  tenantId: id,
+  tenantName: 'Rahul Sharma',
+  propertyId: 'hsr',
+  propertyName: 'HSR PG',
+  room: 'B-204',
+  amount: 8500,
+  periodMonth: DateTime(2026, 9),
+  dueDate: DateTime(2026, 9, 28),
+  status: status,
+  method: status == PaymentStatus.paid ? PaymentMethod.upi : null,
 );
 
 void main() {
-  Widget wrap(ManagerTodayData data) {
+  Widget wrap({required List<RentPayment> payments}) {
     return ProviderScope(
       overrides: [
-        dashboardRepositoryProvider.overrideWithValue(
-          _FakeDashboardRepository(data),
-        ),
+        authControllerProvider.overrideWith(() => _FixedAuthController(_manager)),
+        latestPaymentsProvider.overrideWith((ref, propertyId) async => payments),
+        managerComplaintsProvider.overrideWith((ref, propertyId) async => []),
+        roomsProvider.overrideWith((ref, propertyId) async => []),
+        propertiesProvider.overrideWith(() => _FakePropertiesController()),
       ],
       child: MaterialApp(
         theme: AppTheme.light,
@@ -68,19 +61,30 @@ void main() {
   }
 
   testWidgets('shows rent tasks when there is work to do', (tester) async {
-    await tester.pumpWidget(wrap(_withTasks));
+    await tester.pumpWidget(
+      wrap(payments: [_payment('t7_202609', status: PaymentStatus.pending)]),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Rahul Sharma'), findsOneWidget);
-    expect(find.text('₹8,500'), findsOneWidget);
+    // The "Pending today" mini-stat and the rent-task row now both derive
+    // from the same real payment, so the amount legitimately appears twice.
+    expect(find.text('₹8,500'), findsWidgets);
   });
 
   testWidgets('shows the caught-up state when there is nothing to do', (
     tester,
   ) async {
-    await tester.pumpWidget(wrap(_noTasks));
+    await tester.pumpWidget(
+      wrap(payments: [_payment('t7_202609', status: PaymentStatus.paid)]),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('All caught up for today.'), findsOneWidget);
   });
+}
+
+class _FakePropertiesController extends PropertiesController {
+  @override
+  Future<List<Property>> build() async => const [];
 }

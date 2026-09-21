@@ -31,7 +31,7 @@ const _manager = AppUser(
 const _tenant = AppUser(
   id: 'demo-tenant',
   name: 'Rahul Sharma',
-  phone: '9000000001',
+  phone: '9822233445',
   role: UserRole.tenant,
 );
 
@@ -41,7 +41,14 @@ const _tenant = AppUser(
 /// animation. Advance virtual time past that delay explicitly first.
 Future<void> _pumpPastMockLatency(WidgetTester tester) async {
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 600));
+  // Tenant Home resolves its tenancy first, then fetches that tenant's
+  // payment history/complaints — two sequential mock round-trips, not one.
+  // Manager Today has its own second wave: PgContextBar only mounts (and
+  // starts its own properties fetch) once Manager Today's own data has
+  // already resolved, so a widget that only appears after the first wave
+  // needs a further pump before its own delay has elapsed.
+  await tester.pump(const Duration(milliseconds: 1000));
+  await tester.pump(const Duration(milliseconds: 1000));
   await tester.pumpAndSettle();
 }
 

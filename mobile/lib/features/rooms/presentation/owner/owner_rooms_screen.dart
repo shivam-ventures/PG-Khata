@@ -138,10 +138,11 @@ class _Header extends ConsumerWidget {
           const SizedBox(height: AppSpacing.space2),
           if (properties.length > 1)
             DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: properties.any((p) => p.id == propertyId)
                   ? propertyId
                   : null,
-              decoration: const InputDecoration(labelText: 'Property'),
+              decoration: const InputDecoration(labelText: 'PG'),
               items: [
                 for (final property in properties)
                   DropdownMenuItem(
@@ -241,6 +242,7 @@ class _RoomsBody extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.space2),
             DropdownButtonFormField<_RoomFilter>(
+              isExpanded: true,
               initialValue: filter,
               decoration: const InputDecoration(labelText: 'Filter'),
               items: const [

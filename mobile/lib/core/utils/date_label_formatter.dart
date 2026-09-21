@@ -24,4 +24,16 @@ abstract final class DateLabelFormatter {
   }
 
   static String today() => format(DateTime.now());
+
+  static const _shortMonths = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
+    'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec',
+  ];
+
+  /// A due/paid-date label the way the payments screens show it, e.g. "28 Sept".
+  static String short(DateTime date) => '${date.day} ${_shortMonths[date.month - 1]}';
+
+  /// A rent-period label, e.g. "September 2026" — see the Tenant Payments
+  /// history list.
+  static String monthYear(DateTime date) => '${_months[date.month - 1]} ${date.year}';
 }

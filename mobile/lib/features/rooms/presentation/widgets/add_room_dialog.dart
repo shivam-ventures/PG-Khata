@@ -97,6 +97,7 @@ class _AddRoomDialogState extends ConsumerState<_AddRoomDialog> {
           ),
           const SizedBox(height: AppSpacing.space3),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: _floor,
             decoration: const InputDecoration(labelText: 'Floor'),
             items: [
@@ -107,6 +108,7 @@ class _AddRoomDialogState extends ConsumerState<_AddRoomDialog> {
           ),
           const SizedBox(height: AppSpacing.space3),
           DropdownButtonFormField<SharingType>(
+            isExpanded: true,
             initialValue: _sharing,
             decoration: const InputDecoration(labelText: 'Sharing type'),
             items: [
@@ -128,7 +130,12 @@ class _AddRoomDialogState extends ConsumerState<_AddRoomDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        PrimaryButton(label: 'Save', isLoading: _isSaving, onPressed: _save),
+        PrimaryButton(
+          label: 'Save',
+          expand: false,
+          isLoading: _isSaving,
+          onPressed: _save,
+        ),
       ],
     );
   }

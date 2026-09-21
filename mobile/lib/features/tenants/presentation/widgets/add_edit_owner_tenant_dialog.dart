@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../../../shared/widgets/document_scan.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../../properties/domain/property.dart';
 import '../../application/tenants_providers.dart';
@@ -45,6 +47,7 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
   );
   late final _roomBedController = TextEditingController();
   final _rentController = TextEditingController();
+  final _depositController = TextEditingController();
   late String _propertyId =
       widget.pending?.propertyId ??
       (widget.properties.isNotEmpty ? widget.properties.first.id : '');
@@ -61,7 +64,17 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
     _phoneController.dispose();
     _roomBedController.dispose();
     _rentController.dispose();
+    _depositController.dispose();
     super.dispose();
+  }
+
+  Future<void> _scanDocument() async {
+    final scanned = await pickAndScanTenantDocument(context);
+    if (scanned == null || !mounted) return;
+    setState(() {
+      _nameController.text = scanned.name;
+      _phoneController.text = scanned.phone;
+    });
   }
 
   Future<void> _pickJoinedDate() async {
@@ -77,8 +90,14 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
   Future<void> _save() async {
     final roomBed = _roomBedController.text.trim();
     final rent = int.tryParse(_rentController.text.trim());
+    final depositText = _depositController.text.trim();
+    final deposit = depositText.isEmpty ? null : int.tryParse(depositText);
     if (roomBed.isEmpty || rent == null || rent <= 0) {
       setState(() => _errorText = 'Enter a room/bed and a valid rent amount');
+      return;
+    }
+    if (depositText.isNotEmpty && (deposit == null || deposit < 0)) {
+      setState(() => _errorText = 'Enter a valid deposit amount, or leave it blank');
       return;
     }
     setState(() {
@@ -94,6 +113,7 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
             roomBed: roomBed,
             rent: rent,
             joinedDate: _joinedDate,
+            depositAmount: deposit,
           )
         : await addTenant(
             ref,
@@ -107,6 +127,7 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
             rent: rent,
             joinedDate: _joinedDate,
             status: _status,
+            depositAmount: deposit,
           );
 
     if (!mounted) return;
@@ -128,6 +149,30 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (!_isAssignMode) ...[
+              InkWell(
+                onTap: _scanDocument,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.document_scanner_outlined,
+                      size: 18,
+                      color: context.appColors.accent700,
+                    ),
+                    const SizedBox(width: AppSpacing.space2),
+                    Text(
+                      'Scan an ID or filled form instead',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: context.appColors.accent700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space3),
+            ],
             AppTextField(
               label: 'Full name',
               controller: _nameController,
@@ -141,10 +186,11 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
             ),
             const SizedBox(height: AppSpacing.space3),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: widget.properties.any((p) => p.id == _propertyId)
                   ? _propertyId
                   : null,
-              decoration: const InputDecoration(labelText: 'Property'),
+              decoration: const InputDecoration(labelText: 'PG'),
               items: [
                 for (final property in widget.properties)
                   DropdownMenuItem(
@@ -169,6 +215,12 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: AppSpacing.space3),
+            AppTextField(
+              label: 'Security deposit (optional)',
+              controller: _depositController,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: AppSpacing.space3),
             InkWell(
               onTap: _pickJoinedDate,
               child: InputDecorator(
@@ -180,6 +232,7 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
             ),
             const SizedBox(height: AppSpacing.space3),
             DropdownButtonFormField<TenantStatus>(
+              isExpanded: true,
               initialValue: _status,
               decoration: const InputDecoration(labelText: 'Status'),
               items: [
@@ -196,7 +249,12 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        PrimaryButton(label: 'Save', isLoading: _isSaving, onPressed: _save),
+        PrimaryButton(
+          label: 'Save',
+          expand: false,
+          isLoading: _isSaving,
+          onPressed: _save,
+        ),
       ],
     );
   }

@@ -9,6 +9,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/empty_state.dart';
+import '../../../../shared/widgets/pg_context_bar.dart';
 import '../../../../shared/widgets/skeleton.dart';
 import '../../../dashboard/application/dashboard_providers.dart';
 import '../../application/rooms_providers.dart';
@@ -59,6 +60,7 @@ class _ManagerRoomsScreenState extends ConsumerState<ManagerRoomsScreen> {
             ),
           ),
         ),
+        const PgContextBar(),
         Expanded(
           child: AsyncValueView(
             value: floorsAsync,
@@ -125,6 +127,7 @@ class _RoomsBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.space2),
         DropdownButtonFormField<_RoomFilter>(
+          isExpanded: true,
           initialValue: filter,
           decoration: const InputDecoration(labelText: 'Filter'),
           items: const [

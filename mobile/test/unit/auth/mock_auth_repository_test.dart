@@ -34,7 +34,7 @@ void main() {
         otp: '123456',
       );
       final tenant = await repository.verifyOtp(
-        phoneNumber: '9000000001',
+        phoneNumber: '9822233445',
         otp: '123456',
       );
 

@@ -28,6 +28,8 @@ class StatusChip extends StatelessWidget {
       child: Text(
         label,
         style: AppTextStyles.tagLabel.copyWith(color: tone.foreground(context)),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

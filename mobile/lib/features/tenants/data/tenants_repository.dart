@@ -21,6 +21,7 @@ abstract interface class TenantsRepository {
     required int rent,
     required DateTime joinedDate,
     required TenantStatus status,
+    int? depositAmount,
   });
 
   /// Turns a [PendingTenant] into a real [TenantRecord] once staff assigns
@@ -30,6 +31,7 @@ abstract interface class TenantsRepository {
     required String roomBed,
     required int rent,
     required DateTime joinedDate,
+    int? depositAmount,
   });
 
   Future<Result<TenantRecord>> moveOutTenant(String tenantId);

@@ -21,3 +21,13 @@ final class InvalidOtpFailure extends AppFailure {
   const InvalidOtpFailure()
     : super("That code doesn't look right. Please try again.");
 }
+
+final class InviteNotFoundFailure extends AppFailure {
+  const InviteNotFoundFailure()
+    : super("This invite link isn't valid. Ask your manager for a new one.");
+}
+
+final class InviteAlreadyUsedFailure extends AppFailure {
+  const InviteAlreadyUsedFailure()
+    : super('This invite link has already been used.');
+}

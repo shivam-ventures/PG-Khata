@@ -98,12 +98,12 @@ class _AddEditPropertyDialogState
   Widget build(BuildContext context) {
     final isEditing = widget.editing != null;
     return AppDialog(
-      title: isEditing ? 'Edit property' : 'Add property',
+      title: isEditing ? 'Edit PG' : 'Add PG',
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           AppTextField(
-            label: 'Property name',
+            label: 'PG name',
             controller: _nameController,
             errorText: _errorText,
           ),
@@ -117,6 +117,7 @@ class _AddEditPropertyDialogState
           ),
           const SizedBox(height: AppSpacing.space3),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: _manager,
             decoration: const InputDecoration(labelText: 'Manager'),
             items: [
@@ -132,7 +133,12 @@ class _AddEditPropertyDialogState
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        PrimaryButton(label: 'Save', isLoading: _isSaving, onPressed: _save),
+        PrimaryButton(
+          label: 'Save',
+          expand: false,
+          isLoading: _isSaving,
+          onPressed: _save,
+        ),
       ],
     );
   }

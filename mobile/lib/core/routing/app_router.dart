@@ -8,16 +8,21 @@ import '../../features/auth/domain/user_role.dart';
 import '../../features/auth/presentation/account_menu_screen.dart';
 import '../../features/auth/presentation/otp_verification_screen.dart';
 import '../../features/auth/presentation/phone_entry_screen.dart';
+import '../../features/complaints/presentation/manager/manager_complaints_screen.dart';
+import '../../features/complaints/presentation/tenant/tenant_complaints_screen.dart';
 import '../../features/dashboard/presentation/manager/manager_today_screen.dart';
 import '../../features/dashboard/presentation/owner/owner_dashboard_screen.dart';
 import '../../features/dashboard/presentation/tenant/tenant_home_screen.dart';
+import '../../features/onboarding/presentation/join_invite_screen.dart';
+import '../../features/payments/presentation/manager/manager_payments_screen.dart';
+import '../../features/payments/presentation/owner/owner_payments_screen.dart';
+import '../../features/payments/presentation/tenant/tenant_payments_screen.dart';
 import '../../features/properties/presentation/owner_properties_screen.dart';
+import '../../features/reports/presentation/owner_reports_screen.dart';
 import '../../features/rooms/presentation/manager/manager_rooms_screen.dart';
 import '../../features/rooms/presentation/owner/owner_rooms_screen.dart';
 import '../../features/tenants/presentation/manager/manager_tenants_screen.dart';
 import '../../features/tenants/presentation/owner/owner_tenants_screen.dart';
-import '../../shared/widgets/not_built_yet.dart';
-import '../../shared/widgets/placeholder_screen.dart';
 import '../../shared/widgets/role_shell.dart';
 import '../../shared/widgets/role_bottom_nav.dart';
 import 'app_route.dart';
@@ -40,8 +45,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final user = authState.value;
       final isLoggingIn = state.matchedLocation.startsWith(AppRoute.login);
+      final isJoiningByInvite = state.matchedLocation.startsWith(
+        AppRoute.joinPrefix,
+      );
 
       if (user == null) {
+        // The invite-link flow is reachable while signed out — it *is* a
+        // sign-in path of its own (Auth.dc.html's hasInvite branch), not a
+        // page that needs an existing session.
+        if (isJoiningByInvite) return null;
         return isLoggingIn ? null : AppRoute.login;
       }
 
@@ -65,6 +77,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => OtpVerificationScreen(
           phoneNumber: state.uri.queryParameters['phone'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: '${AppRoute.joinPrefix}/:token',
+        builder: (context, state) =>
+            JoinInviteScreen(token: state.pathParameters['token']!),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) =>
@@ -106,11 +123,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.ownerMore,
-                builder: (context, state) => const AccountMenuScreen(),
+                builder: (context, state) => AccountMenuScreen(
+                  extraMenuItems: [
+                    AccountMenuItem(
+                      icon: Icons.payments_outlined,
+                      label: 'Payments',
+                      onTap: () => context.push(AppRoute.ownerPayments),
+                    ),
+                    AccountMenuItem(
+                      icon: Icons.bar_chart_outlined,
+                      label: 'Reports',
+                      onTap: () => context.push(AppRoute.ownerReports),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoute.ownerPayments,
+        builder: (context, state) => const OwnerPaymentsScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.ownerReports,
+        builder: (context, state) => const OwnerReportsScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) =>
@@ -128,10 +166,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.managerPayments,
-                builder: (context, state) => const PlaceholderScreen(
-                  title: 'Payments',
-                  comingInPhase: 'Phase 3',
-                ),
+                builder: (context, state) => const ManagerPaymentsScreen(),
               ),
             ],
           ),
@@ -157,11 +192,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     AccountMenuItem(
                       icon: Icons.report_problem_outlined,
                       label: 'Complaints',
-                      onTap: () => notifyNotBuiltYet(
-                        context,
-                        feature: 'Complaints',
-                        phase: 'Phase 5',
-                      ),
+                      onTap: () => context.push(AppRoute.managerComplaints),
                     ),
                   ],
                 ),
@@ -177,6 +208,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           initialBed: state.uri.queryParameters['bed'],
           autoOpenAdd: state.uri.queryParameters['add'] == '1',
         ),
+      ),
+      GoRoute(
+        path: AppRoute.managerComplaints,
+        builder: (context, state) => const ManagerComplaintsScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) =>
@@ -194,10 +229,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.tenantPayments,
-                builder: (context, state) => const PlaceholderScreen(
-                  title: 'Rent',
-                  comingInPhase: 'Phase 3',
-                ),
+                builder: (context, state) => const TenantPaymentsScreen(),
               ),
             ],
           ),
@@ -205,10 +237,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.tenantComplaints,
-                builder: (context, state) => const PlaceholderScreen(
-                  title: 'Complaints',
-                  comingInPhase: 'Phase 5',
-                ),
+                builder: (context, state) => const TenantComplaintsScreen(),
               ),
             ],
           ),
@@ -231,7 +260,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 const _ownerNavItems = [
   NavItem(icon: Icons.dashboard_outlined, label: 'Overview'),
-  NavItem(icon: Icons.apartment_outlined, label: 'Properties'),
+  NavItem(icon: Icons.apartment_outlined, label: 'PGs'),
   NavItem(icon: Icons.people_outline, label: 'Tenants'),
   NavItem(icon: Icons.more_horiz, label: 'More'),
 ];

@@ -158,4 +158,43 @@ class MockRoomsRepository implements RoomsRepository {
     _floorsByProperty[propertyId] = floors;
     return Ok(room);
   }
+
+  @override
+  Future<Result<void>> occupyBed(
+    String propertyId, {
+    required String room,
+    required String bed,
+    required String tenantName,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    final floors = _floorsByProperty[propertyId];
+    if (floors == null) return const Ok(null);
+
+    _floorsByProperty[propertyId] = [
+      for (final floor in floors)
+        Floor(
+          name: floor.name,
+          rooms: [
+            for (final r in floor.rooms)
+              if (r.number == room)
+                Room(
+                  number: r.number,
+                  floor: r.floor,
+                  sharingType: r.sharingType,
+                  rentPerBed: r.rentPerBed,
+                  beds: [
+                    for (final b in r.beds)
+                      if (b.label == bed)
+                        Bed(label: b.label, tenantName: tenantName)
+                      else
+                        b,
+                  ],
+                )
+              else
+                r,
+          ],
+        ),
+    ];
+    return const Ok(null);
+  }
 }

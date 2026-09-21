@@ -14,6 +14,7 @@ class AppTextField extends StatelessWidget {
     this.errorText,
     this.autofocus = false,
     this.maxLength,
+    this.maxLines = 1,
     this.onChanged,
     super.key,
   });
@@ -25,6 +26,7 @@ class AppTextField extends StatelessWidget {
   final String? errorText;
   final bool autofocus;
   final int? maxLength;
+  final int maxLines;
   final ValueChanged<String>? onChanged;
 
   @override
@@ -35,6 +37,7 @@ class AppTextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       autofocus: autofocus,
       maxLength: maxLength,
+      maxLines: maxLines,
       onChanged: onChanged,
       style: Theme.of(context).textTheme.bodyLarge,
       decoration: InputDecoration(

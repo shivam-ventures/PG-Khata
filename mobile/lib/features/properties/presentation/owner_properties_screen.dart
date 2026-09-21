@@ -11,7 +11,9 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/skeleton.dart';
 import '../application/properties_providers.dart';
 import '../domain/property.dart';
+import '../domain/property_metrics.dart';
 import 'widgets/add_edit_property_dialog.dart';
+import 'widgets/import_properties_dialog.dart';
 import 'widgets/property_list_card.dart';
 
 /// The Owner's portfolio list. Mirrors `Properties.dc.html`. Rendered inside
@@ -22,23 +24,31 @@ class OwnerPropertiesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final properties = ref.watch(propertiesProvider);
+    final metricsAsync = ref.watch(propertyMetricsProvider);
     return AsyncValueView(
       value: properties,
       onRetry: () => ref.invalidate(propertiesProvider),
       loading: (context) => const _PropertiesSkeleton(),
-      data: (context, data) => _PropertiesContent(properties: data),
+      data: (context, data) => _PropertiesContent(
+        properties: data,
+        metrics: metricsAsync.value ?? const {},
+      ),
     );
   }
 }
 
 class _PropertiesContent extends StatelessWidget {
-  const _PropertiesContent({required this.properties});
+  const _PropertiesContent({required this.properties, required this.metrics});
 
   final List<Property> properties;
+  final Map<String, PropertyMetrics> metrics;
 
   @override
   Widget build(BuildContext context) {
-    final totalBeds = properties.fold<int>(0, (sum, p) => sum + p.totalBeds);
+    final totalBeds = properties.fold<int>(
+      0,
+      (sum, p) => sum + (metrics[p.id]?.totalBeds ?? 0),
+    );
     return Column(
       children: [
         Padding(
@@ -51,12 +61,12 @@ class _PropertiesContent extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Properties',
+                      'PGs',
                       style: Theme.of(context).textTheme.titleLarge
                           ?.copyWith(fontSize: 19),
                     ),
                     Text(
-                      '${properties.length} properties · $totalBeds beds',
+                      '${properties.length} PGs · $totalBeds beds',
                       style: Theme.of(context).textTheme.bodySmall
                           ?.copyWith(color: context.appColors.textMuted),
                     ),
@@ -68,11 +78,22 @@ class _PropertiesContent extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space4),
-          child: CtaCard(
-            icon: Icons.add,
-            title: 'Add property',
-            subtitle: 'Set up a new PG with rooms & beds',
-            onTap: () => showAddEditPropertyDialog(context),
+          child: Column(
+            children: [
+              CtaCard(
+                icon: Icons.add,
+                title: 'Add PG',
+                subtitle: 'Set up a new PG with rooms & beds',
+                onTap: () => showAddEditPropertyDialog(context),
+              ),
+              const SizedBox(height: AppSpacing.space2),
+              CtaCard(
+                icon: Icons.upload_file_outlined,
+                title: 'Import PGs',
+                subtitle: 'Bulk-add from a CSV file',
+                onTap: () => showImportPropertiesDialog(context),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -80,7 +101,7 @@ class _PropertiesContent extends StatelessWidget {
               ? Center(
                   child: EmptyState(
                     icon: Icons.home_work_outlined,
-                    title: 'No properties yet',
+                    title: 'No PGs yet',
                     message: 'Add your first PG to get started.',
                   ),
                 )
@@ -94,6 +115,7 @@ class _PropertiesContent extends StatelessWidget {
                         ),
                         child: PropertyListCard(
                           property: property,
+                          metrics: metrics[property.id] ?? PropertyMetrics.zero,
                           onManageRooms: () => context.push(
                             '${AppRoute.ownerRooms}?property=${property.id}',
                           ),

@@ -91,6 +91,7 @@ class MockTenantsRepository implements TenantsRepository {
       rent: 8500,
       joinedDate: DateTime(2025, 4, 12),
       status: TenantStatus.active,
+      depositAmount: 17000,
     ),
     TenantRecord(
       id: 't8',
@@ -178,6 +179,7 @@ class MockTenantsRepository implements TenantsRepository {
     required int rent,
     required DateTime joinedDate,
     required TenantStatus status,
+    int? depositAmount,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     final tenant = TenantRecord(
@@ -190,6 +192,7 @@ class MockTenantsRepository implements TenantsRepository {
       rent: rent,
       joinedDate: joinedDate,
       status: status,
+      depositAmount: depositAmount,
     );
     _tenants.add(tenant);
     return Ok(tenant);
@@ -201,6 +204,7 @@ class MockTenantsRepository implements TenantsRepository {
     required String roomBed,
     required int rent,
     required DateTime joinedDate,
+    int? depositAmount,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     final pending = _pending.firstWhere((p) => p.id == pendingId);
@@ -214,6 +218,7 @@ class MockTenantsRepository implements TenantsRepository {
       rent: rent,
       joinedDate: joinedDate,
       status: TenantStatus.active,
+      depositAmount: depositAmount,
     );
     _tenants.add(tenant);
     _pending.removeWhere((p) => p.id == pendingId);

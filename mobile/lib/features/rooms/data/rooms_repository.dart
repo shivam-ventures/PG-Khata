@@ -15,4 +15,14 @@ abstract interface class RoomsRepository {
     required SharingType sharingType,
     required int rentPerBed,
   });
+
+  /// Fills a vacant bed with [tenantName] — used once a tenant record is
+  /// actually created (staff Add Tenant, or an invite-link join completing)
+  /// so Rooms and Tenants never drift apart on who occupies what.
+  Future<Result<void>> occupyBed(
+    String propertyId, {
+    required String room,
+    required String bed,
+    required String tenantName,
+  });
 }

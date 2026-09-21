@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../shared/widgets/not_built_yet.dart';
 import '../../../../../shared/widgets/semantic_tone.dart';
 import '../../../domain/owner_dashboard_data.dart';
 
 /// The "Needs your attention" warning card at the top of the Owner
 /// Dashboard, listing [items] with a dot marker and a "View" link each.
+/// [onView] decides what a given item's [AttentionItem.destination]
+/// actually does — a real route for a destination that has a screen, a
+/// "coming soon" notice otherwise.
 class AttentionCard extends StatelessWidget {
-  const AttentionCard({required this.items, super.key});
+  const AttentionCard({required this.items, required this.onView, super.key});
 
   final List<AttentionItem> items;
+  final ValueChanged<String> onView;
 
   @override
   Widget build(BuildContext context) {
@@ -64,11 +67,7 @@ class AttentionCard extends StatelessWidget {
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    onPressed: () => notifyNotBuiltYet(
-                      context,
-                      feature: _featureLabel(item.destination),
-                      phase: _phaseLabel(item.destination),
-                    ),
+                    onPressed: () => onView(item.destination),
                     child: const Text(
                       'View',
                       style: TextStyle(
@@ -84,18 +83,4 @@ class AttentionCard extends StatelessWidget {
       ),
     );
   }
-
-  String _featureLabel(String destination) => switch (destination) {
-    'payments' => 'Payments',
-    'rooms' => 'Rooms',
-    'complaints' => 'Complaints',
-    _ => 'This',
-  };
-
-  String _phaseLabel(String destination) => switch (destination) {
-    'payments' => 'Phase 3',
-    'rooms' => 'Phase 1',
-    'complaints' => 'Phase 5',
-    _ => 'a later phase',
-  };
 }

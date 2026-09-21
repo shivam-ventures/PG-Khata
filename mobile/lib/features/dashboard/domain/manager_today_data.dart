@@ -1,13 +1,5 @@
 import '../../../shared/widgets/semantic_tone.dart';
 
-/// One PG in the Manager's portfolio switcher.
-class PgOption {
-  const PgOption({required this.id, required this.name});
-
-  final String id;
-  final String name;
-}
-
 /// A rent-to-collect row, e.g. "Rahul Sharma · B-204 · ₹8,500".
 class RentTask {
   const RentTask({
@@ -43,8 +35,6 @@ class ComplaintTask {
 class ManagerTodayData {
   const ManagerTodayData({
     required this.managerFirstName,
-    required this.pgOptions,
-    required this.currentPgId,
     required this.occupancyLabel,
     required this.pendingLabel,
     required this.complaintsCountLabel,
@@ -53,8 +43,6 @@ class ManagerTodayData {
   });
 
   final String managerFirstName;
-  final List<PgOption> pgOptions;
-  final String currentPgId;
   final String occupancyLabel;
   final String pendingLabel;
   final String complaintsCountLabel;

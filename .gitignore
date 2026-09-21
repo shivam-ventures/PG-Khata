@@ -7,6 +7,9 @@
 .DS_Store
 *.pem
 
+# Supabase CLI local cache
+supabase/.temp/
+
 # Flutter / Dart (app lives in mobile/ once created)
 mobile/build/
 mobile/.dart_tool/

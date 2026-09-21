@@ -59,7 +59,7 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,8 +98,10 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
             const SizedBox(height: AppSpacing.space6),
             Text(
               'Phase 0 demo accounts (mock OTP is always 123456):\n'
-              '9876543210 — Owner · 9876500000 — Manager · 9000000001 — Tenant\n'
-              'Any other number signs in as a new Tenant.',
+              '9876543210 — Owner · 9876500000 — Manager · '
+              '9822233445 — Tenant (Rahul Sharma, HSR PG)\n'
+              'Any other number signs in as a new Tenant with no room '
+              'assigned yet.',
               style: AppTextStyles.bodySmall.copyWith(
                 color: context.appColors.textMuted,
               ),

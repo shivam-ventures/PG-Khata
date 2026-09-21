@@ -9,22 +9,25 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/semantic_tone.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../domain/property.dart';
+import '../../domain/property_metrics.dart';
 
 /// The `.prop-card` pattern on `Properties.dc.html`: name/address, an open
 /// complaints chip, an occupancy bar, rent/manager stats, and two actions.
 class PropertyListCard extends StatelessWidget {
   const PropertyListCard({
     required this.property,
+    required this.metrics,
     required this.onManageRooms,
     required this.onEdit,
     super.key,
   });
 
   final Property property;
+  final PropertyMetrics metrics;
   final VoidCallback onManageRooms;
   final VoidCallback onEdit;
 
-  SemanticTone get _complaintsTone => switch (property.openComplaints) {
+  SemanticTone get _complaintsTone => switch (metrics.openComplaints) {
     0 => SemanticTone.success,
     1 || 2 => SemanticTone.warning,
     _ => SemanticTone.danger,
@@ -68,7 +71,7 @@ class PropertyListCard extends StatelessWidget {
                 ),
               ),
               StatusChip(
-                label: '${property.openComplaints} open',
+                label: '${metrics.openComplaints} open',
                 tone: _complaintsTone,
               ),
             ],
@@ -84,7 +87,7 @@ class PropertyListCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '${property.occupiedBeds}/${property.totalBeds}',
+                '${metrics.occupiedBeds}/${metrics.totalBeds}',
                 style: AppTextStyles.rowTitle.copyWith(fontSize: 12),
               ),
             ],
@@ -93,7 +96,7 @@ class PropertyListCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(99),
             child: LinearProgressIndicator(
-              value: property.occupancyFraction,
+              value: metrics.occupancyFraction,
               minHeight: 6,
               backgroundColor: context.appColors.surfaceAlt,
               valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
@@ -106,7 +109,7 @@ class PropertyListCard extends StatelessWidget {
                 child: _Stat(
                   label: 'Rent',
                   value:
-                      '${CurrencyFormatter.rupees(property.rentCollected)} / ${CurrencyFormatter.rupees(property.rentExpected)}',
+                      '${CurrencyFormatter.rupees(metrics.rentCollected)} / ${CurrencyFormatter.rupees(metrics.rentExpected)}',
                 ),
               ),
               Expanded(

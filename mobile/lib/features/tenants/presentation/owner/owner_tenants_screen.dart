@@ -136,9 +136,12 @@ class _TenantsBody extends ConsumerWidget {
         CtaCard(
           icon: Icons.person_add_alt,
           title: 'Add tenant',
-          subtitle: 'Manually add someone with a known bed & rent',
-          onTap: () =>
-              showAddOwnerTenantDialog(context, properties: properties),
+          subtitle: properties.isEmpty
+              ? 'Add a PG first — a tenant needs one to belong to'
+              : 'Manually add someone with a known bed & rent',
+          onTap: properties.isEmpty
+              ? null
+              : () => showAddOwnerTenantDialog(context, properties: properties),
         ),
         if (pending.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.space4),
@@ -170,10 +173,11 @@ class _TenantsBody extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.space2),
         DropdownButtonFormField<String>(
+          isExpanded: true,
           initialValue: propertyFilter,
-          decoration: const InputDecoration(labelText: 'Property'),
+          decoration: const InputDecoration(labelText: 'PG'),
           items: [
-            const DropdownMenuItem(value: 'all', child: Text('All properties')),
+            const DropdownMenuItem(value: 'all', child: Text('All PGs')),
             for (final property in properties)
               DropdownMenuItem(
                 value: property.name,
@@ -198,7 +202,9 @@ class _TenantsBody extends ConsumerWidget {
               child: ListRowCard(
                 title: tenant.name,
                 subtitle:
-                    '${tenant.propertyName} · ${tenant.roomBed} · ${CurrencyFormatter.rupees(tenant.rent)}',
+                    '${tenant.propertyName} · ${tenant.roomBed} · '
+                    '${CurrencyFormatter.rupees(tenant.rent)}'
+                    '${tenant.depositAmount == null ? '' : ' · ${CurrencyFormatter.rupees(tenant.depositAmount!)} deposit'}',
                 trailing: StatusChip(
                   label: tenant.status.label,
                   tone: tenant.status.tone,

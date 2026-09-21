@@ -11,8 +11,8 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/async_value_view.dart';
+import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/list_row_card.dart';
-import '../../../../shared/widgets/not_built_yet.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../../../shared/widgets/quick_action_button.dart';
 import '../../../../shared/widgets/secondary_button.dart';
@@ -35,7 +35,15 @@ class TenantHomeScreen extends ConsumerWidget {
       value: home,
       onRetry: () => ref.invalidate(tenantHomeProvider),
       loading: (context) => const _TenantHomeSkeleton(),
-      data: (context, data) => _TenantHomeContent(data: data),
+      data: (context, data) => data == null
+          ? const EmptyState(
+              icon: Icons.home_work_outlined,
+              title: 'No room assigned yet',
+              message:
+                  "Once a manager assigns you a bed, your home screen will "
+                  "show your rent, PG details and complaint status here.",
+            )
+          : _TenantHomeContent(data: data),
     );
   }
 }
@@ -193,26 +201,30 @@ class _TenantHomeContent extends StatelessWidget {
           Text('Address: ${data.pgAddress}'),
           const SizedBox(height: AppSpacing.space2),
           Text('Manager: ${data.managerName}'),
-          const SizedBox(height: AppSpacing.space3),
-          Row(
-            children: [
-              Expanded(
-                child: SecondaryButton(
-                  label: 'Call manager',
-                  onPressed: () =>
-                      launchUrl(Uri(scheme: 'tel', path: data.managerPhone)),
+          if (data.managerPhone != null) ...[
+            const SizedBox(height: AppSpacing.space3),
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: 'Call manager',
+                    onPressed: () => launchUrl(
+                      Uri(scheme: 'tel', path: data.managerPhone),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.space2),
-              Expanded(
-                child: SecondaryButton(
-                  label: 'Message',
-                  onPressed: () =>
-                      launchUrl(Uri(scheme: 'sms', path: data.managerPhone)),
+                const SizedBox(width: AppSpacing.space2),
+                Expanded(
+                  child: SecondaryButton(
+                    label: 'Message',
+                    onPressed: () => launchUrl(
+                      Uri(scheme: 'sms', path: data.managerPhone),
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
       actions: [
@@ -348,11 +360,7 @@ class _RentCardBody extends StatelessWidget {
               const SizedBox(height: AppSpacing.space3),
               PrimaryButton(
                 label: 'Pay Rent',
-                onPressed: () => notifyNotBuiltYet(
-                  context,
-                  feature: 'Online rent payment',
-                  phase: 'Phase 3',
-                ),
+                onPressed: () => context.go(AppRoute.tenantPayments),
               ),
             ],
           )

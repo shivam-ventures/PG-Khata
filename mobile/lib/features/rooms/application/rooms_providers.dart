@@ -65,3 +65,22 @@ Future<AppFailure?> addRoom(
     err: (failure) => failure,
   );
 }
+
+Future<AppFailure?> occupyBed(
+  WidgetRef ref,
+  String propertyId, {
+  required String room,
+  required String bed,
+  required String tenantName,
+}) async {
+  final result = await ref
+      .read(roomsRepositoryProvider)
+      .occupyBed(propertyId, room: room, bed: bed, tenantName: tenantName);
+  return result.when(
+    ok: (_) {
+      ref.invalidate(roomsProvider(propertyId));
+      return null;
+    },
+    err: (failure) => failure,
+  );
+}

@@ -37,7 +37,10 @@ class AppDialog extends StatelessWidget {
         title,
         style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
       ),
-      content: content,
+      // A dialog's own content can be taller than a short viewport allows
+      // (a small phone, a landscape orientation) — scroll it instead of
+      // letting it overflow the fixed space `AlertDialog` gives it.
+      content: SingleChildScrollView(child: content),
       actionsPadding: const EdgeInsets.fromLTRB(
         AppSpacing.space4,
         0,

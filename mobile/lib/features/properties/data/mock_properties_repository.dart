@@ -13,10 +13,6 @@ class MockPropertiesRepository implements PropertiesRepository {
       name: 'HSR PG',
       address: '27th Main, HSR Layout, Bengaluru',
       totalBeds: 20,
-      occupiedBeds: 18,
-      rentCollected: 160000,
-      rentExpected: 180000,
-      openComplaints: 2,
       managerName: 'Ramesh K.',
     ),
     const Property(
@@ -24,10 +20,6 @@ class MockPropertiesRepository implements PropertiesRepository {
       name: 'Koramangala PG',
       address: '5th Block, Koramangala, Bengaluru',
       totalBeds: 18,
-      occupiedBeds: 14,
-      rentCollected: 120000,
-      rentExpected: 130000,
-      openComplaints: 0,
       managerName: 'Divya S.',
     ),
     const Property(
@@ -35,10 +27,6 @@ class MockPropertiesRepository implements PropertiesRepository {
       name: 'Indiranagar PG',
       address: '100ft Road, Indiranagar, Bengaluru',
       totalBeds: 11,
-      occupiedBeds: 10,
-      rentCollected: 130000,
-      rentExpected: 150000,
-      openComplaints: 4,
       managerName: 'Ramesh K.',
     ),
   ];
@@ -62,10 +50,6 @@ class MockPropertiesRepository implements PropertiesRepository {
       name: name,
       address: address,
       totalBeds: totalBeds,
-      occupiedBeds: 0,
-      rentCollected: 0,
-      rentExpected: 0,
-      openComplaints: 0,
       managerName: managerName,
     );
     _properties.add(property);

@@ -17,6 +17,7 @@ class TenantRecord {
     required this.rent,
     required this.joinedDate,
     required this.status,
+    this.depositAmount,
   });
 
   final String id;
@@ -29,6 +30,11 @@ class TenantRecord {
   final DateTime joinedDate;
   final TenantStatus status;
 
+  /// The refundable security deposit collected at move-in, if any — not
+  /// every PG charges one, and the ones that do vary by amount, so this
+  /// stays optional rather than derived from rent.
+  final int? depositAmount;
+
   bool get canMoveOut =>
       status == TenantStatus.active || status == TenantStatus.noticePeriod;
 
@@ -38,6 +44,7 @@ class TenantRecord {
     int? rent,
     DateTime? joinedDate,
     TenantStatus? status,
+    int? depositAmount,
   }) {
     return TenantRecord(
       id: id,
@@ -49,6 +56,7 @@ class TenantRecord {
       rent: rent ?? this.rent,
       joinedDate: joinedDate ?? this.joinedDate,
       status: status ?? this.status,
+      depositAmount: depositAmount ?? this.depositAmount,
     );
   }
 }

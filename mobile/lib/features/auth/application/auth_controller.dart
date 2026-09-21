@@ -55,4 +55,13 @@ class AuthController extends AsyncNotifier<AppUser?> {
     await ref.read(authRepositoryProvider).signOut();
     state = const AsyncValue.data(null);
   }
+
+  /// Signs [user] straight in without a phone/OTP round-trip of its own —
+  /// for the invite-link join flow (`features/onboarding`), where phone
+  /// verification already happened against the invite itself and this *is*
+  /// the tenant's first real login, per `docs/DECISIONS.md`'s 2026-09-15
+  /// onboarding entry.
+  void completeInviteSignIn(AppUser user) {
+    state = AsyncValue.data(user);
+  }
 }

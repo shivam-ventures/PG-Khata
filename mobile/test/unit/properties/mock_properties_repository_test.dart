@@ -15,7 +15,7 @@ void main() {
     expect(properties.map((p) => p.id), containsAll(['hsr', 'kor', 'ind']));
   });
 
-  test('addProperty appends a new property with zero occupancy', () async {
+  test('addProperty appends a new property with the given capacity', () async {
     final result = await repository.addProperty(
       name: 'New PG',
       address: 'Some address',
@@ -24,7 +24,7 @@ void main() {
     );
     final added = result.when(ok: (p) => p, err: (_) => null);
     expect(added, isNotNull);
-    expect(added!.occupiedBeds, 0);
+    expect(added!.totalBeds, 10);
 
     final all = (await repository.fetchProperties()).when(
       ok: (p) => p,
@@ -46,7 +46,5 @@ void main() {
     expect(updated, isNotNull);
     expect(updated!.name, 'HSR PG (renamed)');
     expect(updated.totalBeds, 25);
-    // occupiedBeds carries over rather than resetting on an edit.
-    expect(updated.occupiedBeds, 18);
   });
 }
