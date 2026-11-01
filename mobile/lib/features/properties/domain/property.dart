@@ -16,6 +16,7 @@ class Property {
     required this.address,
     required this.totalBeds,
     required this.managerName,
+    this.managerId,
   });
 
   final String id;
@@ -23,6 +24,12 @@ class Property {
   final String address;
   final int totalBeds;
   final String managerName;
+
+  /// Null when [managerName] is 'Unassigned' (or, for a mock/test Property,
+  /// simply never set) — the real id behind the display name, needed to
+  /// pre-select the current manager in the Add/Edit PG dialog's picker
+  /// without re-resolving it by name.
+  final String? managerId;
 
   Property copyWith({
     String? name,
@@ -36,6 +43,7 @@ class Property {
       address: address ?? this.address,
       totalBeds: totalBeds ?? this.totalBeds,
       managerName: managerName ?? this.managerName,
+      managerId: managerId,
     );
   }
 }

@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/result.dart';
+import '../../../core/routing/app_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_scaffold.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -14,8 +16,7 @@ import '../application/auth_controller.dart';
 
 /// Login, step 1: phone number entry. Mirrors `Auth.dc.html`'s phone field
 /// only — the self-registration/role-picker/join-code parts of that screen
-/// are explicitly out of scope for Phase 0 (see the auth repository's doc
-/// comment for why).
+/// are handled by the separate join-invite flow, not here.
 class PhoneEntryScreen extends ConsumerStatefulWidget {
   const PhoneEntryScreen({super.key});
 
@@ -37,8 +38,9 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
   bool get _isValidPhone => RegExp(r'^[6-9]\d{9}$').hasMatch(_controller.text);
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
     if (!_isValidPhone) {
-      setState(() => _errorText = 'Enter a valid 10-digit mobile number');
+      setState(() => _errorText = l10n.loginInvalidPhone);
       return;
     }
     setState(() {
@@ -58,6 +60,7 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppScaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.space4),
@@ -66,19 +69,19 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
           children: [
             const SizedBox(height: AppSpacing.space8),
             Text(
-              'PG Khata',
+              l10n.appName,
               style: AppTextStyles.sectionHeading.copyWith(fontSize: 28),
             ),
             const SizedBox(height: AppSpacing.space2),
             Text(
-              "Enter your mobile number and we'll send you a one-time code.",
+              l10n.loginTitle,
               style: AppTextStyles.body.copyWith(
                 color: context.appColors.textMuted,
               ),
             ),
             const SizedBox(height: AppSpacing.space6),
             AppTextField(
-              label: 'Mobile number',
+              label: l10n.loginPhoneLabel,
               controller: _controller,
               keyboardType: TextInputType.phone,
               maxLength: 10,
@@ -91,17 +94,20 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
             ),
             const SizedBox(height: AppSpacing.space4),
             PrimaryButton(
-              label: 'Send OTP',
+              label: l10n.loginSendOtp,
               isLoading: _isSubmitting,
               onPressed: _submit,
             ),
-            const SizedBox(height: AppSpacing.space6),
+            const SizedBox(height: AppSpacing.space4),
+            Center(
+              child: TextButton(
+                onPressed: () => context.push(AppRoute.register),
+                child: Text(l10n.loginNoInvite),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.space2),
             Text(
-              'Phase 0 demo accounts (mock OTP is always 123456):\n'
-              '9876543210 — Owner · 9876500000 — Manager · '
-              '9822233445 — Tenant (Rahul Sharma, HSR PG)\n'
-              'Any other number signs in as a new Tenant with no room '
-              'assigned yet.',
+              l10n.loginDemoAccounts,
               style: AppTextStyles.bodySmall.copyWith(
                 color: context.appColors.textMuted,
               ),

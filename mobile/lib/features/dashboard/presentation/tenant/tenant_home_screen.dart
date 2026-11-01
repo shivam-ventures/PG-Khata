@@ -9,6 +9,10 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/date_label_formatter.dart';
+import '../../../../core/utils/relative_time_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/empty_state.dart';
@@ -35,15 +39,16 @@ class TenantHomeScreen extends ConsumerWidget {
       value: home,
       onRetry: () => ref.invalidate(tenantHomeProvider),
       loading: (context) => const _TenantHomeSkeleton(),
-      data: (context, data) => data == null
-          ? const EmptyState(
-              icon: Icons.home_work_outlined,
-              title: 'No room assigned yet',
-              message:
-                  "Once a manager assigns you a bed, your home screen will "
-                  "show your rent, PG details and complaint status here.",
-            )
-          : _TenantHomeContent(data: data),
+      data: (context, data) {
+        final l10n = AppLocalizations.of(context);
+        return data == null
+            ? EmptyState(
+                icon: Icons.home_work_outlined,
+                title: l10n.tenantNoRoomTitle,
+                message: l10n.tenantNoRoomMessage,
+              )
+            : _TenantHomeContent(data: data);
+      },
     );
   }
 }
@@ -56,6 +61,7 @@ class _TenantHomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Padding(
@@ -64,7 +70,7 @@ class _TenantHomeContent extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Hello, ${data.firstName} 👋',
+                  l10n.tenantHello(data.firstName),
                   style: AppTextStyles.screenTitle.copyWith(
                     color: theme.colorScheme.onSurface,
                     fontSize: 19,
@@ -87,9 +93,10 @@ class _TenantHomeContent extends StatelessWidget {
               if (data.hasPendingCashConfirmation)
                 _InfoBanner(
                   icon: Icons.currency_rupee,
-                  title: 'Confirm your cash payment',
-                  message:
-                      'Manager recorded ${data.pendingCashAmountLabel} cash — tap to confirm or dispute.',
+                  title: l10n.tenantConfirmCashTitle,
+                  message: l10n.tenantConfirmCashMessage(
+                    CurrencyFormatter.rupees(data.pendingCashAmount!),
+                  ),
                   onTap: () => context.go(AppRoute.tenantPayments),
                 ),
               if (data.hasPendingCashConfirmation)
@@ -97,7 +104,7 @@ class _TenantHomeContent extends StatelessWidget {
               if (data.hasAnnouncement)
                 _InfoBanner(
                   icon: Icons.campaign_outlined,
-                  title: 'Announcement',
+                  title: l10n.tenantAnnouncementTitle,
                   message: data.announcement!,
                 ),
               if (data.hasAnnouncement)
@@ -109,7 +116,7 @@ class _TenantHomeContent extends StatelessWidget {
                   Expanded(
                     child: QuickActionButton(
                       icon: Icons.report_problem_outlined,
-                      label: 'Report Issue',
+                      label: l10n.tenantReportIssue,
                       tone: SemanticTone.warning,
                       onTap: () => context.go(AppRoute.tenantComplaints),
                     ),
@@ -118,7 +125,7 @@ class _TenantHomeContent extends StatelessWidget {
                   Expanded(
                     child: QuickActionButton(
                       icon: Icons.receipt_long_outlined,
-                      label: 'Rent History',
+                      label: l10n.tenantRentHistory,
                       tone: SemanticTone.accent,
                       onTap: () => context.go(AppRoute.tenantPayments),
                     ),
@@ -127,9 +134,9 @@ class _TenantHomeContent extends StatelessWidget {
                   Expanded(
                     child: QuickActionButton(
                       icon: Icons.apartment_outlined,
-                      label: 'My PG',
+                      label: l10n.tenantMyPg,
                       tone: SemanticTone.info,
-                      onTap: () => _showPgInfo(context, data),
+                      onTap: () => _showPgInfo(context, l10n, data),
                     ),
                   ),
                 ],
@@ -139,14 +146,14 @@ class _TenantHomeContent extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Last payment',
+                    l10n.tenantLastPayment,
                     style: AppTextStyles.sectionHeading.copyWith(fontSize: 18),
                   ),
                   TextButton(
                     onPressed: () => context.go(AppRoute.tenantPayments),
-                    child: const Text(
-                      'See all',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.commonSeeAll,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
@@ -159,10 +166,12 @@ class _TenantHomeContent extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.space2),
                   child: ListRowCard(
-                    title: payment.periodLabel,
-                    subtitle: '${payment.method} · ${payment.date}',
+                    title: DateLabelFormatter.monthYear(payment.periodMonth),
+                    subtitle:
+                        '${payment.method?.labelFor(l10n) ?? '—'} · '
+                        '${DateLabelFormatter.short(payment.paidDate)}',
                     trailing: StatusChip(
-                      label: payment.status,
+                      label: payment.status.labelFor(l10n),
                       tone: payment.tone,
                     ),
                   ),
@@ -170,15 +179,20 @@ class _TenantHomeContent extends StatelessWidget {
               if (data.hasOpenComplaint) ...[
                 const SizedBox(height: AppSpacing.space4),
                 Text(
-                  'Complaint status',
+                  l10n.tenantComplaintStatus,
                   style: AppTextStyles.sectionHeading.copyWith(fontSize: 18),
                 ),
                 const SizedBox(height: AppSpacing.space2),
                 ListRowCard(
                   title: data.openComplaintTitle!,
-                  subtitle: data.openComplaintAge!,
+                  subtitle: l10n.tenantReportedTime(
+                    RelativeTimeFormatter.agoFor(
+                      l10n,
+                      data.openComplaintReportedAt!,
+                    ),
+                  ),
                   trailing: StatusChip(
-                    label: data.openComplaintStatus!,
+                    label: data.openComplaintStatus!.labelFor(l10n),
                     tone: SemanticTone.warning,
                   ),
                 ),
@@ -190,7 +204,7 @@ class _TenantHomeContent extends StatelessWidget {
     );
   }
 
-  void _showPgInfo(BuildContext context, TenantHomeData data) {
+  void _showPgInfo(BuildContext context, AppLocalizations l10n, TenantHomeData data) {
     AppDialog.show<void>(
       context,
       title: data.pgName,
@@ -198,16 +212,22 @@ class _TenantHomeContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Address: ${data.pgAddress}'),
+          Text(l10n.tenantPgAddress(data.pgAddress)),
           const SizedBox(height: AppSpacing.space2),
-          Text('Manager: ${data.managerName}'),
+          Text(
+            l10n.tenantPgManager(
+              data.managerName.isEmpty
+                  ? l10n.tenantYourManagerFallback
+                  : data.managerName,
+            ),
+          ),
           if (data.managerPhone != null) ...[
             const SizedBox(height: AppSpacing.space3),
             Row(
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: 'Call manager',
+                    label: l10n.tenantCallManager,
                     onPressed: () => launchUrl(
                       Uri(scheme: 'tel', path: data.managerPhone),
                     ),
@@ -216,7 +236,7 @@ class _TenantHomeContent extends StatelessWidget {
                 const SizedBox(width: AppSpacing.space2),
                 Expanded(
                   child: SecondaryButton(
-                    label: 'Message',
+                    label: l10n.tenantMessageManager,
                     onPressed: () => launchUrl(
                       Uri(scheme: 'sms', path: data.managerPhone),
                     ),
@@ -230,7 +250,7 @@ class _TenantHomeContent extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Text(l10n.commonClose),
         ),
       ],
     );
@@ -337,29 +357,40 @@ class _RentCardBody extends StatelessWidget {
 
   final TenantHomeData data;
 
+  String _dueLabel(AppLocalizations l10n) {
+    if (data.isOverdue) return l10n.tenantRentOverdue;
+    final days = data.currentDueDate!.difference(DateTime.now()).inDays;
+    if (days <= 0) return l10n.tenantRentDueToday;
+    return l10n.tenantRentDueInDays(days);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final rentAmountLabel = CurrencyFormatter.rupees(data.rentAmount);
     return data.isRentDueSoon
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'ROOM ${data.room} · ${data.dueLabel.toUpperCase()}',
+                l10n
+                    .tenantRoomAndDue(data.room, _dueLabel(l10n))
+                    .toUpperCase(),
                 style: AppTextStyles.kickerUppercase.copyWith(
                   color: context.appColors.textMuted,
                 ),
               ),
               const SizedBox(height: AppSpacing.space2),
               Text(
-                data.rentAmountLabel,
+                rentAmountLabel,
                 style: AppTextStyles.displayAmount.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: AppSpacing.space3),
               PrimaryButton(
-                label: 'Pay Rent',
+                label: l10n.tenantPayRent,
                 onPressed: () => context.go(AppRoute.tenantPayments),
               ),
             ],
@@ -379,12 +410,24 @@ class _RentCardBody extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "You're all paid up",
+                      l10n.tenantAllPaidUp,
                       style: AppTextStyles.cardTitle.copyWith(fontSize: 15),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Room ${data.room} · Next rent of ${data.rentAmountLabel} due ${data.nextDueDateLabel}',
+                      l10n.tenantNextRentDue(
+                        data.room,
+                        rentAmountLabel,
+                        data.currentDueDate == null
+                            ? ''
+                            : DateLabelFormatter.short(
+                                DateTime(
+                                  data.currentDueDate!.year,
+                                  data.currentDueDate!.month + 1,
+                                  data.currentDueDate!.day,
+                                ),
+                              ),
+                      ),
                       style: AppTextStyles.bodySmall.copyWith(
                         color: context.appColors.textMuted,
                       ),

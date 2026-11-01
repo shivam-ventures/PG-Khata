@@ -2,15 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/result.dart';
-import '../data/mock_rooms_repository.dart';
+import '../../../core/supabase/supabase_providers.dart';
 import '../data/rooms_repository.dart';
+import '../data/supabase_rooms_repository.dart';
 import '../domain/room.dart';
 import '../domain/sharing_type.dart';
 
-/// The single override point for swapping the rooms data source: point this
-/// at a Supabase-backed implementation in Phase 6.
+/// The single override point for swapping the rooms data source — was
+/// `MockRoomsRepository()` through Phase 1; now backed by real Supabase
+/// rows (`rooms`/`beds`/`bed_occupancy`).
 final roomsRepositoryProvider = Provider<RoomsRepository>(
-  (ref) => MockRoomsRepository(),
+  (ref) => SupabaseRoomsRepository(ref.watch(supabaseClientProvider)),
 );
 
 /// A property's rooms, grouped by floor. [MockRoomsRepository] holds its

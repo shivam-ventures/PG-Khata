@@ -25,7 +25,11 @@ void main() {
     });
 
     test('a consumed token fails with InviteAlreadyUsedFailure', () async {
-      await repository.consumeInvite('hsr-101-C');
+      await repository.completeJoin(
+        token: 'hsr-101-C',
+        fullName: 'Test Tenant',
+        phoneNumber: '9998887770',
+      );
       final result = await repository.resolveInvite('hsr-101-C');
       final failure = result.when(ok: (_) => null, err: (f) => f);
       expect(failure, isA<InviteAlreadyUsedFailure>());

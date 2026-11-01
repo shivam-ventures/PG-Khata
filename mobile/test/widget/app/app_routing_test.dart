@@ -1,9 +1,36 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pg_khata/app/app.dart';
+import 'package:pg_khata/features/announcements/application/announcements_providers.dart';
+import 'package:pg_khata/features/announcements/data/mock_announcements_repository.dart';
 import 'package:pg_khata/features/auth/application/auth_controller.dart';
 import 'package:pg_khata/features/auth/domain/app_user.dart';
 import 'package:pg_khata/features/auth/domain/user_role.dart';
+import 'package:pg_khata/features/complaints/application/complaints_providers.dart';
+import 'package:pg_khata/features/complaints/data/mock_complaints_repository.dart';
+import 'package:pg_khata/features/payments/application/payments_providers.dart';
+import 'package:pg_khata/features/payments/data/mock_payments_repository.dart';
+import 'package:pg_khata/features/properties/application/properties_providers.dart';
+import 'package:pg_khata/features/properties/data/mock_properties_repository.dart';
+import 'package:pg_khata/features/rooms/application/rooms_providers.dart';
+import 'package:pg_khata/features/rooms/data/mock_rooms_repository.dart';
+import 'package:pg_khata/features/tenants/application/tenants_providers.dart';
+import 'package:pg_khata/features/tenants/data/mock_tenants_repository.dart';
+
+/// Routing here only needs to exercise role-based navigation, not real
+/// backend integration — these repositories are swapped for Supabase in the
+/// app's default providers, so this test pins the ones that matter for the
+/// screens it visits back to their fast, offline mocks.
+final _offlineOverrides = [
+  announcementsRepositoryProvider.overrideWithValue(
+    MockAnnouncementsRepository(),
+  ),
+  propertiesRepositoryProvider.overrideWithValue(MockPropertiesRepository()),
+  roomsRepositoryProvider.overrideWithValue(MockRoomsRepository()),
+  tenantsRepositoryProvider.overrideWithValue(MockTenantsRepository()),
+  paymentsRepositoryProvider.overrideWithValue(MockPaymentsRepository()),
+  complaintsRepositoryProvider.overrideWithValue(MockComplaintsRepository()),
+];
 
 /// A fixed-state stand-in for [AuthController] so a test can start already
 /// signed in (or signed out) without driving the phone/OTP flow.
@@ -77,6 +104,7 @@ void main() {
           authControllerProvider.overrideWith(
             () => _FixedAuthController(_owner),
           ),
+          ..._offlineOverrides,
         ],
         child: const PgKhataApp(),
       ),
@@ -94,6 +122,7 @@ void main() {
           authControllerProvider.overrideWith(
             () => _FixedAuthController(_manager),
           ),
+          ..._offlineOverrides,
         ],
         child: const PgKhataApp(),
       ),
@@ -111,6 +140,7 @@ void main() {
           authControllerProvider.overrideWith(
             () => _FixedAuthController(_tenant),
           ),
+          ..._offlineOverrides,
         ],
         child: const PgKhataApp(),
       ),

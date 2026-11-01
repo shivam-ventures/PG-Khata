@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_radius.dart';
@@ -7,6 +8,7 @@ import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../../core/utils/date_label_formatter.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../shared/widgets/app_dialog.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 import '../../../application/payments_providers.dart';
@@ -43,6 +45,10 @@ class _PayRentDialog extends ConsumerStatefulWidget {
 class _PayRentDialogState extends ConsumerState<_PayRentDialog> {
   _PayStep _step = _PayStep.method;
   PaymentMethod? _method;
+  // Generated once for this dialog instance — a double-tap or a retry
+  // after `_pay` fails reuses the same key, so the backend records it at
+  // most once. See `recordSelfPayment`'s doc comment.
+  final String _idempotencyKey = const Uuid().v4();
 
   Future<void> _pay() async {
     final method = _method;
@@ -57,8 +63,12 @@ class _PayRentDialogState extends ConsumerState<_PayRentDialog> {
       ref,
       widget.payment.id,
       method: method,
-      amount: widget.payment.expectedAmount,
+      // The backend now requires this to exactly match what's still owed
+      // (migration 34) — for a partially-paid period that's less than
+      // expectedAmount, not the full rent. See RentPayment.outstandingAmount.
+      amount: widget.payment.outstandingAmount,
       date: DateTime.now(),
+      idempotencyKey: _idempotencyKey,
     );
     if (!mounted) return;
     if (failure != null) {
@@ -73,11 +83,12 @@ class _PayRentDialogState extends ConsumerState<_PayRentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppDialog(
       title: switch (_step) {
-        _PayStep.method => 'Pay Rent',
-        _PayStep.processing => 'Processing payment',
-        _PayStep.success => 'Payment successful',
+        _PayStep.method => l10n.tenantPayRent,
+        _PayStep.processing => l10n.tenantPaymentProcessingTitle,
+        _PayStep.success => l10n.tenantPaymentSuccessTitle,
       },
       content: switch (_step) {
         _PayStep.method => _MethodStep(
@@ -92,10 +103,12 @@ class _PayRentDialogState extends ConsumerState<_PayRentDialog> {
         _PayStep.method => [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           PrimaryButton(
-            label: 'Pay ${CurrencyFormatter.rupees(widget.payment.amount)}',
+            label: l10n.tenantPayAmount(
+              CurrencyFormatter.rupees(widget.payment.outstandingAmount),
+            ),
             expand: false,
             onPressed: _method == null ? null : _pay,
           ),
@@ -103,7 +116,7 @@ class _PayRentDialogState extends ConsumerState<_PayRentDialog> {
         _PayStep.processing => const [],
         _PayStep.success => [
           PrimaryButton(
-            label: 'Done',
+            label: l10n.commonDone,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -125,19 +138,23 @@ class _MethodStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Room ${payment.room} · ${DateLabelFormatter.monthYear(payment.periodMonth)}',
+          l10n.tenantRoomAndPeriod(
+            payment.room,
+            DateLabelFormatter.monthYear(payment.periodMonth),
+          ),
           style: AppTextStyles.bodySmall.copyWith(
             color: context.appColors.textMuted,
           ),
         ),
         const SizedBox(height: AppSpacing.space3),
         Text(
-          'How would you like to pay?',
+          l10n.tenantChoosePaymentMethod,
           style: AppTextStyles.kicker.copyWith(
             color: context.appColors.textSecondary,
           ),
@@ -145,16 +162,16 @@ class _MethodStep extends StatelessWidget {
         const SizedBox(height: AppSpacing.space2),
         _MethodTile(
           icon: Icons.qr_code_2,
-          label: 'UPI',
-          sub: 'Pay via any UPI app',
+          label: PaymentMethod.upi.labelFor(l10n),
+          sub: l10n.tenantPayViaUpi,
           selected: selected == PaymentMethod.upi,
           onTap: () => onSelected(PaymentMethod.upi),
         ),
         const SizedBox(height: AppSpacing.space2),
         _MethodTile(
           icon: Icons.credit_card,
-          label: 'Card',
-          sub: 'Credit or debit card',
+          label: PaymentMethod.card.labelFor(l10n),
+          sub: l10n.tenantPayViaCard,
           selected: selected == PaymentMethod.card,
           onTap: () => onSelected(PaymentMethod.card),
         ),
@@ -252,7 +269,7 @@ class _ProcessingStep extends StatelessWidget {
           const CircularProgressIndicator(),
           const SizedBox(height: AppSpacing.space4),
           Text(
-            "Hang on, we're confirming your payment…",
+            AppLocalizations.of(context).tenantPaymentProcessingMessage,
             textAlign: TextAlign.center,
             style: AppTextStyles.body.copyWith(
               color: context.appColors.textMuted,
@@ -271,6 +288,7 @@ class _SuccessStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,8 +299,14 @@ class _SuccessStep extends StatelessWidget {
             const SizedBox(width: AppSpacing.space2),
             Expanded(
               child: Text(
-                '${CurrencyFormatter.rupees(payment.amount)} paid for '
-                '${DateLabelFormatter.monthYear(payment.periodMonth)}',
+                l10n.tenantPaymentSuccessAmount(
+                  // `payment` here is the pre-payment snapshot passed into
+                  // this dialog — outstandingAmount is what _pay() actually
+                  // just charged, not payment.amount (which for a partial
+                  // period would be what was already paid *before* this).
+                  CurrencyFormatter.rupees(payment.outstandingAmount),
+                  DateLabelFormatter.monthYear(payment.periodMonth),
+                ),
                 style: AppTextStyles.rowTitle,
               ),
             ),
@@ -290,7 +314,7 @@ class _SuccessStep extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.space2),
         Text(
-          "Your rent record has been updated.",
+          l10n.tenantPaymentRecordUpdated,
           style: AppTextStyles.bodySmall.copyWith(
             color: context.appColors.textSecondary,
           ),

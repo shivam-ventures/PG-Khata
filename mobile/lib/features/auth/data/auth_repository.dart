@@ -19,4 +19,16 @@ abstract interface class AuthRepository {
 
   /// Ends the current session.
   Future<void> signOut();
+
+  /// Restores the signed-in user from an already-active session (e.g. on
+  /// app restart), or `null` if there isn't one.
+  Future<AppUser?> restoreSession();
+
+  /// Updates whichever of the signed-in user's Settings-screen preferences
+  /// are given, leaving the rest untouched.
+  Future<Result<AppUser>> updatePreferences({
+    String? preferredLanguage,
+    bool? notifyComplaints,
+    bool? notifyAnnouncements,
+  });
 }

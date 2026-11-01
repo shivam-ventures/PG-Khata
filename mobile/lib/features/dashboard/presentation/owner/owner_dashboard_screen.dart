@@ -5,12 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_label_formatter.dart';
 import '../../../../core/utils/greeting_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/dashboard_header.dart';
 import '../../../../shared/widgets/empty_state.dart';
-import '../../../../shared/widgets/not_built_yet.dart';
 import '../../../../shared/widgets/quick_action_button.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/semantic_tone.dart';
@@ -48,11 +49,15 @@ class _OwnerDashboardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final ownerFirstName = data.ownerFirstName.isEmpty
+        ? l10n.ownerFallbackName
+        : data.ownerFirstName;
     return Column(
       children: [
         DashboardHeader(
           dateLabel: DateLabelFormatter.today(),
-          greeting: GreetingFormatter.greeting(data.ownerFirstName),
+          greeting: GreetingFormatter.greetingFor(l10n, ownerFirstName),
           onSettingsTap: () => context.go(AppRoute.ownerMore),
         ),
         Expanded(
@@ -61,11 +66,11 @@ class _OwnerDashboardContent extends StatelessWidget {
               : Center(
                   child: EmptyState(
                     icon: Icons.home_work_outlined,
-                    title: 'No PGs yet',
-                    message: "Let's set up your first PG — add rooms and beds, then invite a manager or tenants.",
-                    primaryActionLabel: 'Add PG',
+                    title: l10n.ownerNoPgsTitle,
+                    message: l10n.ownerNoPgsMessage,
+                    primaryActionLabel: l10n.ownerAddPg,
                     onPrimaryAction: () => context.go(AppRoute.ownerProperties),
-                    secondaryActionLabel: 'Import from Excel',
+                    secondaryActionLabel: l10n.ownerImportFromExcel,
                     onSecondaryAction: () =>
                         showImportPropertiesDialog(context),
                   ),
@@ -83,6 +88,7 @@ class _PopulatedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.space4),
       children: [
@@ -92,11 +98,7 @@ class _PopulatedBody extends StatelessWidget {
             onView: (destination) => switch (destination) {
               'payments' => context.push(AppRoute.ownerPayments),
               'rooms' => context.go(AppRoute.ownerProperties),
-              _ => notifyNotBuiltYet(
-                context,
-                feature: 'Complaints',
-                phase: 'a later phase',
-              ),
+              _ => context.push(AppRoute.ownerComplaints),
             },
           ),
           const SizedBox(height: AppSpacing.space6),
@@ -106,7 +108,7 @@ class _PopulatedBody extends StatelessWidget {
             Expanded(
               child: QuickActionButton(
                 icon: Icons.payments_outlined,
-                label: 'Payments',
+                label: l10n.ownerPayments,
                 tone: SemanticTone.success,
                 onTap: () => context.push(AppRoute.ownerPayments),
               ),
@@ -115,20 +117,16 @@ class _PopulatedBody extends StatelessWidget {
             Expanded(
               child: QuickActionButton(
                 icon: Icons.report_problem_outlined,
-                label: 'Complaints',
+                label: l10n.ownerComplaintsAction,
                 tone: SemanticTone.warning,
-                onTap: () => notifyNotBuiltYet(
-                  context,
-                  feature: 'Complaints',
-                  phase: 'a later phase',
-                ),
+                onTap: () => context.push(AppRoute.ownerComplaints),
               ),
             ),
             const SizedBox(width: AppSpacing.space2),
             Expanded(
               child: QuickActionButton(
                 icon: Icons.bar_chart_outlined,
-                label: 'Reports',
+                label: l10n.ownerReports,
                 tone: SemanticTone.info,
                 onTap: () => context.push(AppRoute.ownerReports),
               ),
@@ -137,7 +135,7 @@ class _PopulatedBody extends StatelessWidget {
             Expanded(
               child: QuickActionButton(
                 icon: Icons.apartment_outlined,
-                label: 'PGs',
+                label: l10n.ownerPgsAction,
                 tone: SemanticTone.accent,
                 onTap: () => context.go(AppRoute.ownerProperties),
               ),
@@ -168,8 +166,8 @@ class _PopulatedBody extends StatelessWidget {
           ),
         const SizedBox(height: AppSpacing.space6),
         SectionHeader(
-          title: 'PGs',
-          actionLabel: 'View all',
+          title: l10n.ownerPgsSection,
+          actionLabel: l10n.commonViewAll,
           onAction: () => context.go(AppRoute.ownerProperties),
         ),
         for (final property in data.properties)
@@ -192,13 +190,37 @@ class _StatCardFor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StatCard(
-      icon: stat.icon,
-      label: stat.label,
-      value: stat.value,
-      sub: stat.sub,
-      tone: stat.tone,
-    );
+    final l10n = AppLocalizations.of(context);
+    return switch (stat) {
+      OccupancyStat s => StatCard(
+        icon: Icons.home_outlined,
+        label: l10n.statOccupancy,
+        value: '${s.percent}%',
+        sub: l10n.statOccupancySub(s.occupiedBeds, s.totalBeds),
+        tone: SemanticTone.accent,
+      ),
+      RentCollectedStat s => StatCard(
+        icon: Icons.currency_rupee,
+        label: l10n.statRentCollected,
+        value: CurrencyFormatter.rupees(s.collected),
+        sub: l10n.statRentCollectedSub(CurrencyFormatter.rupees(s.expected)),
+        tone: SemanticTone.success,
+      ),
+      PendingRentStat s => StatCard(
+        icon: Icons.hourglass_bottom,
+        label: l10n.statPendingRent,
+        value: CurrencyFormatter.rupees(s.amount),
+        sub: l10n.statPendingRentSub(s.tenantCount),
+        tone: SemanticTone.warning,
+      ),
+      OpenComplaintsStat s => StatCard(
+        icon: Icons.warning_amber_rounded,
+        label: l10n.statOpenComplaints,
+        value: '${s.count}',
+        sub: l10n.statOpenComplaintsSub(s.staleCount),
+        tone: SemanticTone.danger,
+      ),
+    };
   }
 }
 
@@ -211,6 +233,7 @@ class _PropertyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -232,7 +255,7 @@ class _PropertyCard extends StatelessWidget {
                   style: theme.textTheme.titleMedium?.copyWith(fontSize: 15),
                 ),
                 StatusChip(
-                  label: property.complaintsLabel,
+                  label: l10n.propertyComplaintsOpen(property.openComplaints),
                   tone: property.complaintsTone,
                 ),
               ],
@@ -242,13 +265,16 @@ class _PropertyCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Occupancy: ${property.occupancyLabel}',
+                  l10n.propertyOccupancy(
+                    '${property.occupiedBeds}/${property.totalBeds}',
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: context.appColors.textMuted,
                   ),
                 ),
                 Text(
-                  property.rentLabel,
+                  '${CurrencyFormatter.rupees(property.rentCollected)} / '
+                  '${CurrencyFormatter.rupees(property.rentExpected)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: context.appColors.textMuted,
                   ),
@@ -256,7 +282,7 @@ class _PropertyCard extends StatelessWidget {
               ],
             ),
             Text(
-              'Manager: ${property.managerName}',
+              l10n.propertyManager(property.managerName),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: context.appColors.textMuted,
               ),

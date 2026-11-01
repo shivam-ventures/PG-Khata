@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routing/app_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/async_value_view.dart';
 import '../../../shared/widgets/cta_card.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -45,6 +46,7 @@ class _PropertiesContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final totalBeds = properties.fold<int>(
       0,
       (sum, p) => sum + (metrics[p.id]?.totalBeds ?? 0),
@@ -61,12 +63,12 @@ class _PropertiesContent extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'PGs',
+                      l10n.ownerPgsSection,
                       style: Theme.of(context).textTheme.titleLarge
                           ?.copyWith(fontSize: 19),
                     ),
                     Text(
-                      '${properties.length} PGs · $totalBeds beds',
+                      l10n.propertiesCountSummary(properties.length, totalBeds),
                       style: Theme.of(context).textTheme.bodySmall
                           ?.copyWith(color: context.appColors.textMuted),
                     ),
@@ -82,15 +84,15 @@ class _PropertiesContent extends StatelessWidget {
             children: [
               CtaCard(
                 icon: Icons.add,
-                title: 'Add PG',
-                subtitle: 'Set up a new PG with rooms & beds',
+                title: l10n.ownerAddPg,
+                subtitle: l10n.propertiesAddPgSubtitle,
                 onTap: () => showAddEditPropertyDialog(context),
               ),
               const SizedBox(height: AppSpacing.space2),
               CtaCard(
                 icon: Icons.upload_file_outlined,
-                title: 'Import PGs',
-                subtitle: 'Bulk-add from a CSV file',
+                title: l10n.propertiesImportPgsTitle,
+                subtitle: l10n.propertiesImportPgsSubtitle,
                 onTap: () => showImportPropertiesDialog(context),
               ),
             ],
@@ -101,8 +103,8 @@ class _PropertiesContent extends StatelessWidget {
               ? Center(
                   child: EmptyState(
                     icon: Icons.home_work_outlined,
-                    title: 'No PGs yet',
-                    message: 'Add your first PG to get started.',
+                    title: l10n.ownerNoPgsTitle,
+                    message: l10n.ownerPropertiesEmptyMessage,
                   ),
                 )
               : ListView(

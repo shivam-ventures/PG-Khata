@@ -8,8 +8,11 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_label_formatter.dart';
 import '../../../../core/utils/greeting_formatter.dart';
+import '../../../../core/utils/relative_time_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/dashboard_header.dart';
 import '../../../../shared/widgets/empty_state.dart';
@@ -46,11 +49,15 @@ class _ManagerTodayContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final managerFirstName = data.managerFirstName.isEmpty
+        ? l10n.managerFallbackName
+        : data.managerFirstName;
     return Column(
       children: [
         DashboardHeader(
           dateLabel: DateLabelFormatter.today(),
-          greeting: GreetingFormatter.greeting(data.managerFirstName),
+          greeting: GreetingFormatter.greetingFor(l10n, managerFirstName),
           onSettingsTap: () => context.go(AppRoute.managerMore),
         ),
         const PgContextBar(),
@@ -62,23 +69,25 @@ class _ManagerTodayContent extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: _MiniStat(
-                      label: 'Occupancy',
-                      value: data.occupancyLabel,
+                      label: l10n.managerOccupancy,
+                      value: '${data.occupiedBeds}/${data.totalBeds}',
                     ),
                   ),
                   const SizedBox(width: AppSpacing.space2),
                   Expanded(
                     child: _MiniStat(
-                      label: 'Pending today',
-                      value: data.pendingLabel,
+                      label: l10n.managerPendingToday,
+                      value: CurrencyFormatter.rupees(data.pendingAmount),
                       valueColor: context.appColors.warning700,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.space2),
                   Expanded(
                     child: _MiniStat(
-                      label: 'Complaints',
-                      value: data.complaintsCountLabel,
+                      label: l10n.managerComplaints,
+                      value: l10n.propertyComplaintsOpen(
+                        data.openComplaintsCount,
+                      ),
                       valueColor: context.appColors.danger,
                     ),
                   ),
@@ -90,7 +99,7 @@ class _ManagerTodayContent extends ConsumerWidget {
                   Expanded(
                     child: QuickActionButton(
                       icon: Icons.payments_outlined,
-                      label: 'Collect Rent',
+                      label: l10n.managerCollectRent,
                       tone: SemanticTone.success,
                       onTap: () => context.go(AppRoute.managerPayments),
                     ),
@@ -99,7 +108,7 @@ class _ManagerTodayContent extends ConsumerWidget {
                   Expanded(
                     child: QuickActionButton(
                       icon: Icons.person_add_alt_outlined,
-                      label: 'Add Tenant',
+                      label: l10n.managerAddTenant,
                       tone: SemanticTone.accent,
                       onTap: () =>
                           context.push('${AppRoute.managerTenants}?add=1'),
@@ -109,7 +118,7 @@ class _ManagerTodayContent extends ConsumerWidget {
                   Expanded(
                     child: QuickActionButton(
                       icon: Icons.grid_view_outlined,
-                      label: 'View Rooms',
+                      label: l10n.managerViewRooms,
                       tone: SemanticTone.info,
                       onTap: () => context.go(AppRoute.managerRooms),
                     ),
@@ -118,7 +127,7 @@ class _ManagerTodayContent extends ConsumerWidget {
                   Expanded(
                     child: QuickActionButton(
                       icon: Icons.report_problem_outlined,
-                      label: 'Complaints',
+                      label: l10n.managerComplaints,
                       tone: SemanticTone.warning,
                       onTap: () => context.push(AppRoute.managerComplaints),
                     ),
@@ -129,8 +138,8 @@ class _ManagerTodayContent extends ConsumerWidget {
               if (data.hasTasks) ...[
                 if (data.rentTasks.isNotEmpty) ...[
                   SectionHeader(
-                    title: 'Rent to collect',
-                    actionLabel: 'See all',
+                    title: l10n.managerRentToCollect,
+                    actionLabel: l10n.commonSeeAll,
                     onAction: () => context.go(AppRoute.managerPayments),
                   ),
                   for (final task in data.rentTasks)
@@ -143,7 +152,7 @@ class _ManagerTodayContent extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              task.amountLabel,
+                              CurrencyFormatter.rupees(task.amount),
                               style: AppTextStyles.rowTitle.copyWith(
                                 fontWeight: FontWeight.w800,
                               ),
@@ -160,7 +169,7 @@ class _ManagerTodayContent extends ConsumerWidget {
                                 minimumSize: Size.zero,
                                 textStyle: const TextStyle(fontSize: 12),
                               ),
-                              child: const Text('Collect'),
+                              child: Text(l10n.managerCollect),
                             ),
                           ],
                         ),
@@ -170,8 +179,8 @@ class _ManagerTodayContent extends ConsumerWidget {
                 ],
                 if (data.complaintTasks.isNotEmpty) ...[
                   SectionHeader(
-                    title: 'Open complaints',
-                    actionLabel: 'See all',
+                    title: l10n.managerOpenComplaints,
+                    actionLabel: l10n.commonSeeAll,
                     onAction: () => context.push(AppRoute.managerComplaints),
                   ),
                   for (final task in data.complaintTasks)
@@ -179,19 +188,20 @@ class _ManagerTodayContent extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: AppSpacing.space2),
                       child: _TaskCard(
                         title: task.title,
-                        subtitle: '${task.room} · ${task.age}',
+                        subtitle:
+                            '${task.room} · ${RelativeTimeFormatter.openFor(l10n, task.reportedAt)}',
                         trailing: StatusChip(
-                          label: task.status,
+                          label: task.status.labelFor(l10n),
                           tone: task.tone,
                         ),
                       ),
                     ),
                 ],
               ] else
-                const EmptyState(
+                EmptyState(
                   icon: Icons.check_circle_outline,
-                  title: 'All caught up for today.',
-                  message: 'No rent to collect and no open complaints here.',
+                  title: l10n.managerAllCaughtUpTitle,
+                  message: l10n.managerAllCaughtUpMessage,
                 ),
             ],
           ),

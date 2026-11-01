@@ -4,17 +4,19 @@ import '../domain/app_user.dart';
 import '../domain/user_role.dart';
 import 'auth_repository.dart';
 
-/// Phase-0 mock backing for [AuthRepository]. There is no real backend yet
-/// (see `docs/DECISIONS.md`'s 2026-09-18 entry) — this simulates network
-/// latency and resolves a role from a small seeded set of demo accounts,
-/// since there's no `profiles` table yet to look one up in.
+/// Phase-0 mock backing for [AuthRepository], superseded by
+/// [SupabaseAuthRepository] now that a real backend exists — kept only for
+/// UI development/tests that want auth without a network round-trip. This
+/// simulates network latency and resolves a role from a small seeded set of
+/// demo accounts, since there's no `profiles` table to look one up in.
 ///
-/// This seeded-role mapping is a Phase-0 demo affordance only, not the
+/// This seeded-role mapping is a mock-only affordance, not the
 /// self-registration/role-self-select flow the product decision in
-/// `docs/design-readme-reconciliation.md` §6.3 explicitly defers — it goes
-/// away once [AuthRepository] is backed by real Supabase auth in Phase 6.
+/// `docs/design-readme-reconciliation.md` §6.3 explicitly defers.
 class MockAuthRepository implements AuthRepository {
   static const _validOtp = '123456';
+
+  AppUser? _current;
 
   static const _demoUsers = <String, AppUser>{
     '9876543210': AppUser(
@@ -64,11 +66,38 @@ class MockAuthRepository implements AuthRepository {
           phone: phoneNumber,
           role: UserRole.tenant,
         );
+    _current = user;
     return Ok(user);
   }
 
   @override
   Future<void> signOut() async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
+    _current = null;
+  }
+
+  @override
+  Future<AppUser?> restoreSession() async => null;
+
+  @override
+  Future<Result<AppUser>> updatePreferences({
+    String? preferredLanguage,
+    bool? notifyComplaints,
+    bool? notifyAnnouncements,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    final current = _current;
+    if (current == null) return const Err(UnexpectedFailure());
+    final updated = AppUser(
+      id: current.id,
+      name: current.name,
+      phone: current.phone,
+      role: current.role,
+      preferredLanguage: preferredLanguage ?? current.preferredLanguage,
+      notifyComplaints: notifyComplaints ?? current.notifyComplaints,
+      notifyAnnouncements: notifyAnnouncements ?? current.notifyAnnouncements,
+    );
+    _current = updated;
+    return Ok(updated);
   }
 }

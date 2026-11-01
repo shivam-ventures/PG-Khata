@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/danger_button.dart';
 import '../../application/payments_providers.dart';
@@ -15,21 +16,18 @@ Future<void> showVoidPaymentDialog(
   WidgetRef ref, {
   required RentPayment payment,
 }) {
+  final l10n = AppLocalizations.of(context);
   return AppDialog.show<void>(
     context,
-    title: 'Undo this payment?',
-    content: Text(
-      "This entry for ${payment.tenantName} will be removed and the "
-      "period will go back to needing collection. Use this if the "
-      'amount, method or tenant was recorded by mistake.',
-    ),
+    title: l10n.paymentsUndoTitle,
+    content: Text(l10n.paymentsUndoMessage(payment.tenantName)),
     actions: [
       TextButton(
         onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Cancel'),
+        child: Text(l10n.commonCancel),
       ),
       DangerButton(
-        label: 'Undo payment',
+        label: l10n.paymentsUndoButton,
         expand: false,
         onPressed: () async {
           Navigator.of(context).pop();

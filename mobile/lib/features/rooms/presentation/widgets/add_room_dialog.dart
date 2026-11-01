@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/primary_button.dart';
@@ -54,7 +55,8 @@ class _AddRoomDialogState extends ConsumerState<_AddRoomDialog> {
     final rent = int.tryParse(_rentController.text.trim());
     if (number.isEmpty || rent == null || rent <= 0) {
       setState(
-        () => _errorText = 'Enter a room number and a valid rent amount',
+        () => _errorText =
+            AppLocalizations.of(context).roomsErrorNumberAndRent,
       );
       return;
     }
@@ -85,13 +87,14 @@ class _AddRoomDialogState extends ConsumerState<_AddRoomDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppDialog(
-      title: 'Add room',
+      title: l10n.roomsAddRoomDialogTitle,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           AppTextField(
-            label: 'Room number',
+            label: l10n.roomsRoomNumberLabel,
             controller: _numberController,
             errorText: _errorText,
           ),
@@ -99,7 +102,7 @@ class _AddRoomDialogState extends ConsumerState<_AddRoomDialog> {
           DropdownButtonFormField<String>(
             isExpanded: true,
             initialValue: _floor,
-            decoration: const InputDecoration(labelText: 'Floor'),
+            decoration: InputDecoration(labelText: l10n.roomsFloorLabel),
             items: [
               for (final floor in {...widget.floorNames, _floor})
                 DropdownMenuItem(value: floor, child: Text(floor)),
@@ -110,16 +113,16 @@ class _AddRoomDialogState extends ConsumerState<_AddRoomDialog> {
           DropdownButtonFormField<SharingType>(
             isExpanded: true,
             initialValue: _sharing,
-            decoration: const InputDecoration(labelText: 'Sharing type'),
+            decoration: InputDecoration(labelText: l10n.roomsSharingTypeLabel),
             items: [
               for (final type in SharingType.values)
-                DropdownMenuItem(value: type, child: Text(type.label)),
+                DropdownMenuItem(value: type, child: Text(type.labelFor(l10n))),
             ],
             onChanged: (value) => setState(() => _sharing = value ?? _sharing),
           ),
           const SizedBox(height: AppSpacing.space3),
           AppTextField(
-            label: 'Rent per bed',
+            label: l10n.roomsRentPerBedLabel,
             controller: _rentController,
             keyboardType: TextInputType.number,
           ),
@@ -128,10 +131,10 @@ class _AddRoomDialogState extends ConsumerState<_AddRoomDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         PrimaryButton(
-          label: 'Save',
+          label: l10n.commonSave,
           expand: false,
           isLoading: _isSaving,
           onPressed: _save,

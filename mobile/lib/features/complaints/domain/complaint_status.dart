@@ -1,3 +1,4 @@
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/semantic_tone.dart';
 
 /// A complaint's lifecycle state. Matches `Manager Complaints.dc.html` and
@@ -8,11 +9,20 @@ enum ComplaintStatus {
   resolved,
   reopened;
 
+  /// Unlocalized — kept only for call sites not yet migrated. Prefer
+  /// [labelFor].
   String get label => switch (this) {
     ComplaintStatus.reported => 'Reported',
     ComplaintStatus.delegated => 'Delegated',
     ComplaintStatus.resolved => 'Resolved',
     ComplaintStatus.reopened => 'Reopened',
+  };
+
+  String labelFor(AppLocalizations l10n) => switch (this) {
+    ComplaintStatus.reported => l10n.complaintStatusReported,
+    ComplaintStatus.delegated => l10n.complaintStatusDelegated,
+    ComplaintStatus.resolved => l10n.complaintStatusResolved,
+    ComplaintStatus.reopened => l10n.complaintStatusReopened,
   };
 
   SemanticTone get tone => switch (this) {

@@ -1,3 +1,5 @@
+import '../../l10n/app_localizations.dart';
+
 /// Formats how long ago a moment was, the way the Complaints screens show
 /// it (`Tenant Complaints.dc.html`'s "Reported 2 days ago", `Manager
 /// Complaints.dc.html`'s "2 days open") — computed live off the stored
@@ -18,6 +20,8 @@ abstract final class RelativeTimeFormatter {
     return '$d day${d == 1 ? '' : 's'}';
   }
 
+  /// Unlocalized — kept only for call sites not yet migrated. Prefer
+  /// [agoFor].
   /// e.g. "Reported 2 days ago" → pass the timestamp, get "2 days ago".
   static String ago(DateTime time) {
     final unit = _unitCount(DateTime.now().difference(time));
@@ -25,9 +29,29 @@ abstract final class RelativeTimeFormatter {
     return unit == '1 day' ? 'yesterday' : '$unit ago';
   }
 
+  /// Unlocalized — kept only for call sites not yet migrated. Prefer
+  /// [openFor].
   /// e.g. "2 days open" — used for a still-open item's age instead of "ago".
   static String open(DateTime time) {
     final unit = _unitCount(DateTime.now().difference(time));
     return unit == 'just now' ? unit : '$unit open';
+  }
+
+  static String agoFor(AppLocalizations l10n, DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 1) return l10n.relativeJustNow;
+    if (diff.inHours < 1) return l10n.relativeMinutesAgo(diff.inMinutes);
+    if (diff.inDays < 1) return l10n.relativeHoursAgo(diff.inHours);
+    final d = diff.inDays;
+    if (d == 1) return l10n.relativeYesterday;
+    return l10n.relativeDaysAgo(d);
+  }
+
+  static String openFor(AppLocalizations l10n, DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 1) return l10n.relativeJustNow;
+    if (diff.inHours < 1) return l10n.relativeMinutesOpen(diff.inMinutes);
+    if (diff.inDays < 1) return l10n.relativeHoursOpen(diff.inHours);
+    return l10n.relativeDaysOpen(diff.inDays);
   }
 }

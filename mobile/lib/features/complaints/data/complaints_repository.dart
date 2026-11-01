@@ -14,6 +14,10 @@ abstract interface class ComplaintsRepository {
     String? tenantId,
   });
 
+  /// [idempotencyKey] should be generated once per submit attempt by the
+  /// caller and reused across any retry of that same attempt — see
+  /// `PaymentsRepository.recordPayment`'s doc comment for why. Backs
+  /// `report_complaint` (backend migration 10/27).
   Future<Result<Complaint>> reportComplaint({
     required String propertyId,
     required String propertyName,
@@ -24,6 +28,7 @@ abstract interface class ComplaintsRepository {
     required ComplaintSeverity severity,
     required String title,
     required TimePreference timePreference,
+    String? idempotencyKey,
   });
 
   Future<Result<void>> delegateComplaint(

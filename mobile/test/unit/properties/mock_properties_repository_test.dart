@@ -20,7 +20,6 @@ void main() {
       name: 'New PG',
       address: 'Some address',
       totalBeds: 10,
-      managerName: 'Unassigned',
     );
     final added = result.when(ok: (p) => p, err: (_) => null);
     expect(added, isNotNull);
@@ -40,7 +39,6 @@ void main() {
       name: 'HSR PG (renamed)',
       address: 'New address',
       totalBeds: 25,
-      managerName: 'Divya S.',
     );
     final updated = result.when(ok: (p) => p, err: (_) => null);
     expect(updated, isNotNull);

@@ -6,6 +6,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/bed.dart';
 import '../../domain/room.dart';
 
@@ -25,6 +26,7 @@ class RoomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.space4),
@@ -43,13 +45,13 @@ class RoomCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Room ${room.number}',
+                l10n.roomNumberLabel(room.number),
                 style: AppTextStyles.rowTitle.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
-                room.sharingType.label,
+                room.sharingType.labelFor(l10n),
                 style: AppTextStyles.bodySmall.copyWith(
                   color: context.appColors.textMuted,
                 ),
@@ -65,7 +67,7 @@ class RoomCard extends StatelessWidget {
           Divider(color: context.appColors.divider, height: 1),
           const SizedBox(height: AppSpacing.space2),
           Text(
-            '${CurrencyFormatter.rupees(room.rentPerBed)} / bed',
+            l10n.roomsRentPerBed(CurrencyFormatter.rupees(room.rentPerBed)),
             style: AppTextStyles.bodySmall.copyWith(
               color: context.appColors.textMuted,
             ),
@@ -98,7 +100,7 @@ class _BedRow extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.space2),
         Text(
-          'Bed ${bed.label}',
+          AppLocalizations.of(context).bedLabel(bed.label),
           style: AppTextStyles.bodySmall.copyWith(fontSize: 13),
         ),
       ],

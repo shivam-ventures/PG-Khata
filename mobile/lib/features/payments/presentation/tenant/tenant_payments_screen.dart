@@ -8,6 +8,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_label_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/list_row_card.dart';
@@ -31,6 +32,7 @@ class TenantPaymentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final tenantAsync = ref.watch(currentTenantRecordProvider);
 
     return Column(
@@ -43,7 +45,7 @@ class TenantPaymentsScreen extends ConsumerWidget {
             0,
           ),
           child: Text(
-            'Rent & Payments',
+            l10n.tenantPaymentsTitle,
             style: AppTextStyles.screenTitle.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -55,12 +57,10 @@ class TenantPaymentsScreen extends ConsumerWidget {
             onRetry: () => ref.invalidate(currentTenantRecordProvider),
             loading: (context) => const _TenantPaymentsSkeleton(),
             data: (context, tenant) => tenant == null
-                ? const EmptyState(
+                ? EmptyState(
                     icon: Icons.home_work_outlined,
-                    title: 'No room assigned yet',
-                    message:
-                        "Once a manager assigns you a bed, your rent and "
-                        "payment history will show up here.",
+                    title: l10n.tenantNoRoomTitle,
+                    message: l10n.tenantPaymentsNoRoomMessage,
                   )
                 : _TenantPaymentsForTenant(tenantId: tenant.id),
           ),
@@ -94,12 +94,12 @@ class _TenantPaymentsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     if (history.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.receipt_long_outlined,
-        title: 'No rent record yet',
-        message: "Your rent history will show up here once your first "
-            "period is on record.",
+        title: l10n.tenantPaymentsEmptyTitle,
+        message: l10n.tenantPaymentsEmptyMessage,
       );
     }
     final current = history.first;
@@ -125,18 +125,22 @@ class _TenantPaymentsBody extends ConsumerWidget {
           _PendingCashCard(payment: awaitingCash),
         ],
         const SizedBox(height: AppSpacing.space4),
-        const SectionHeader(title: 'Payment history'),
+        SectionHeader(title: l10n.tenantPaymentHistorySection),
         for (final payment in history)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.space2),
             child: ListRowCard(
               title: DateLabelFormatter.monthYear(payment.periodMonth),
               subtitle: payment.paidDate != null
-                  ? '${payment.method?.label ?? '—'} · '
-                        '${DateLabelFormatter.short(payment.paidDate!)}'
-                  : '— · Due ${DateLabelFormatter.short(payment.dueDate)}',
+                  ? l10n.paymentsHistoryRowPaid(
+                      payment.method?.labelFor(l10n) ?? '—',
+                      DateLabelFormatter.short(payment.paidDate!),
+                    )
+                  : l10n.paymentsHistoryRowDue(
+                      DateLabelFormatter.short(payment.dueDate),
+                    ),
               trailing: StatusChip(
-                label: payment.status.label,
+                label: payment.status.labelFor(l10n),
                 tone: payment.status.tone,
               ),
             ),
@@ -153,6 +157,7 @@ class _RentDueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isSettled = payment.status == PaymentStatus.paid;
     final isAwaitingCash = payment.status == PaymentStatus.awaitingConfirmation;
@@ -180,11 +185,22 @@ class _RentDueCard extends StatelessWidget {
               children: [
                 Text(
                   switch (payment.status) {
-                    PaymentStatus.paid =>
-                      'Room ${payment.room} · Paid for ${DateLabelFormatter.monthYear(payment.periodMonth)}',
-                    PaymentStatus.awaitingConfirmation =>
-                      'Room ${payment.room} · ${payment.method?.label ?? 'Payment'} recorded ${DateLabelFormatter.short(payment.paidDate!)}',
-                    _ => 'Room ${payment.room} · Due ${DateLabelFormatter.short(payment.dueDate)}',
+                    PaymentStatus.paid => l10n.tenantRentPaidFor(
+                      payment.room,
+                      DateLabelFormatter.monthYear(payment.periodMonth),
+                    ),
+                    PaymentStatus.awaitingConfirmation => l10n.tenantRentRecorded(
+                      payment.room,
+                      payment.method?.labelFor(l10n) ?? l10n.paymentMethodGeneric,
+                      DateLabelFormatter.short(payment.paidDate!),
+                    ),
+                    PaymentStatus.partial => l10n.tenantRentPartiallyPaidBalanceDue(
+                      payment.room,
+                    ),
+                    _ => l10n.tenantRentDueOn(
+                      payment.room,
+                      DateLabelFormatter.short(payment.dueDate),
+                    ),
                   },
                   style: AppTextStyles.kickerUppercase.copyWith(
                     color: context.appColors.textMuted,
@@ -192,7 +208,19 @@ class _RentDueCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.space1),
                 Text(
-                  CurrencyFormatter.rupees(payment.amount),
+                  // paid/awaitingConfirmation/disputed show what was
+                  // actually paid or claimed; everything else (pending,
+                  // overdue, partial) shows what's still owed — for
+                  // partial that's the remaining balance, not the amount
+                  // already paid. See RentPayment.outstandingAmount.
+                  CurrencyFormatter.rupees(
+                    switch (payment.status) {
+                      PaymentStatus.paid ||
+                      PaymentStatus.awaitingConfirmation ||
+                      PaymentStatus.disputed => payment.amount,
+                      _ => payment.outstandingAmount,
+                    },
+                  ),
                   style: AppTextStyles.displayAmount.copyWith(
                     color: theme.colorScheme.onSurface,
                   ),
@@ -202,7 +230,7 @@ class _RentDueCard extends StatelessWidget {
                   _ConfirmDisputeRow(paymentId: payment.id)
                 else if (!isSettled)
                   PrimaryButton(
-                    label: 'Pay Rent',
+                    label: l10n.tenantPayRent,
                     expand: false,
                     onPressed: () => showPayRentDialog(context, payment: payment),
                   ),
@@ -222,6 +250,7 @@ class _PendingCashCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -233,18 +262,22 @@ class _PendingCashCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '${payment.method?.label ?? 'Payment'} recorded by manager',
+            l10n.tenantPaymentRecordedByManager(
+              payment.method?.labelFor(l10n) ?? l10n.paymentMethodGeneric,
+            ),
             style: AppTextStyles.kicker.copyWith(color: context.appColors.info700),
           ),
           const SizedBox(height: 2),
           Text(
-            '${CurrencyFormatter.rupees(payment.amount)} on '
-            '${DateLabelFormatter.short(payment.paidDate!)}',
+            l10n.tenantAmountOnDate(
+              CurrencyFormatter.rupees(payment.amount),
+              DateLabelFormatter.short(payment.paidDate!),
+            ),
             style: AppTextStyles.rowTitle,
           ),
           const SizedBox(height: AppSpacing.space2),
           Text(
-            "Did you pay this? Confirming helps keep your rent record accurate.",
+            l10n.tenantConfirmPaymentPrompt,
             style: AppTextStyles.bodySmall.copyWith(
               color: context.appColors.textSecondary,
             ),
@@ -264,18 +297,19 @@ class _ConfirmDisputeRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
         Expanded(
           child: SecondaryButton(
-            label: "I didn't pay this",
+            label: l10n.tenantDisputePayment,
             onPressed: () => disputePayment(ref, paymentId),
           ),
         ),
         const SizedBox(width: AppSpacing.space2),
         Expanded(
           child: PrimaryButton(
-            label: 'Confirm',
+            label: l10n.tenantConfirmPayment,
             onPressed: () => confirmPayment(ref, paymentId),
           ),
         ),

@@ -6,6 +6,7 @@ import '../../../../core/routing/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/empty_state.dart';
@@ -41,6 +42,7 @@ class _ManagerRoomsScreenState extends ConsumerState<ManagerRoomsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final propertyId = ref.watch(managerSelectedPgIdProvider);
     final floorsAsync = ref.watch(roomsProvider(propertyId));
 
@@ -54,7 +56,7 @@ class _ManagerRoomsScreenState extends ConsumerState<ManagerRoomsScreen> {
             0,
           ),
           child: Text(
-            'Rooms',
+            l10n.roomsTitle,
             style: AppTextStyles.screenTitle.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -100,6 +102,7 @@ class _RoomsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final allRooms = [for (final floor in floors) ...floor.rooms];
     final query = searchController.text.trim().toLowerCase();
     final filtered = allRooms.where((room) {
@@ -121,7 +124,7 @@ class _RoomsBody extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.space4),
       children: [
         AppTextField(
-          label: 'Search room or tenant',
+          label: l10n.roomsSearchLabel,
           controller: searchController,
           onChanged: (_) => onSearchChanged(),
         ),
@@ -129,16 +132,16 @@ class _RoomsBody extends StatelessWidget {
         DropdownButtonFormField<_RoomFilter>(
           isExpanded: true,
           initialValue: filter,
-          decoration: const InputDecoration(labelText: 'Filter'),
-          items: const [
-            DropdownMenuItem(value: _RoomFilter.all, child: Text('All rooms')),
+          decoration: InputDecoration(labelText: l10n.commonFilter),
+          items: [
+            DropdownMenuItem(value: _RoomFilter.all, child: Text(l10n.roomsFilterAll)),
             DropdownMenuItem(
               value: _RoomFilter.vacant,
-              child: Text('Has vacant bed'),
+              child: Text(l10n.roomsFilterVacant),
             ),
             DropdownMenuItem(
               value: _RoomFilter.occupied,
-              child: Text('Fully occupied'),
+              child: Text(l10n.roomsFilterOccupied),
             ),
           ],
           onChanged: (value) {
@@ -147,17 +150,17 @@ class _RoomsBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.space1),
         Text(
-          '${filtered.length} of ${allRooms.length} rooms',
+          l10n.roomsMatchCount(filtered.length, allRooms.length),
           style: AppTextStyles.bodySmall.copyWith(
             color: context.appColors.textMuted,
           ),
         ),
         const SizedBox(height: AppSpacing.space4),
         if (filtered.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.search_off,
-            title: 'No rooms match',
-            message: 'Try a different search or filter.',
+            title: l10n.roomsEmptyTitle,
+            message: l10n.roomsEmptyMessage,
           )
         else
           for (final room in filtered)
@@ -174,9 +177,9 @@ class _RoomsBody extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(0, 0),
                     ),
-                    child: const Text(
-                      'Assign existing',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.roomsAssignExisting,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
@@ -186,7 +189,7 @@ class _RoomsBody extends StatelessWidget {
                   TextButton(
                     onPressed: () => showInviteTenantDialog(
                       context,
-                      propertyId: propertyId,
+                      bedId: bed.id,
                       room: room.number,
                       bed: bed.label,
                     ),
@@ -194,9 +197,9 @@ class _RoomsBody extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(0, 0),
                     ),
-                    child: const Text(
-                      'Invite via link',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.roomsInviteViaLink,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),

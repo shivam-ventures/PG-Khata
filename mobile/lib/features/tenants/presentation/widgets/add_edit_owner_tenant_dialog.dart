@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/document_scan.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../../properties/domain/property.dart';
@@ -88,16 +89,17 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
     final roomBed = _roomBedController.text.trim();
     final rent = int.tryParse(_rentController.text.trim());
     final depositText = _depositController.text.trim();
     final deposit = depositText.isEmpty ? null : int.tryParse(depositText);
     if (roomBed.isEmpty || rent == null || rent <= 0) {
-      setState(() => _errorText = 'Enter a room/bed and a valid rent amount');
+      setState(() => _errorText = l10n.tenantsErrorRoomBedAndRent);
       return;
     }
     if (depositText.isNotEmpty && (deposit == null || deposit < 0)) {
-      setState(() => _errorText = 'Enter a valid deposit amount, or leave it blank');
+      setState(() => _errorText = l10n.tenantsErrorDepositAmount);
       return;
     }
     setState(() {
@@ -143,8 +145,9 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppDialog(
-      title: _isAssignMode ? 'Assign bed & rent' : 'Add tenant',
+      title: _isAssignMode ? l10n.tenantsAssignBedAndRentTitle : l10n.tenantsAddTenant,
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -161,7 +164,7 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
                     ),
                     const SizedBox(width: AppSpacing.space2),
                     Text(
-                      'Scan an ID or filled form instead',
+                      l10n.tenantsScanInstead,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -174,13 +177,13 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
               const SizedBox(height: AppSpacing.space3),
             ],
             AppTextField(
-              label: 'Full name',
+              label: l10n.tenantsFullNameLabel,
               controller: _nameController,
               errorText: _errorText,
             ),
             const SizedBox(height: AppSpacing.space3),
             AppTextField(
-              label: 'Phone',
+              label: l10n.commonPhone,
               controller: _phoneController,
               keyboardType: TextInputType.phone,
             ),
@@ -190,7 +193,7 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
               initialValue: widget.properties.any((p) => p.id == _propertyId)
                   ? _propertyId
                   : null,
-              decoration: const InputDecoration(labelText: 'PG'),
+              decoration: InputDecoration(labelText: l10n.commonPg),
               items: [
                 for (final property in widget.properties)
                   DropdownMenuItem(
@@ -205,18 +208,18 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
             ),
             const SizedBox(height: AppSpacing.space3),
             AppTextField(
-              label: 'Room / Bed (e.g. 101 - B)',
+              label: l10n.tenantsRoomBedHintLabel,
               controller: _roomBedController,
             ),
             const SizedBox(height: AppSpacing.space3),
             AppTextField(
-              label: 'Monthly rent',
+              label: l10n.tenantsMonthlyRentLabel,
               controller: _rentController,
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: AppSpacing.space3),
             AppTextField(
-              label: 'Security deposit (optional)',
+              label: l10n.tenantsSecurityDepositLabel,
               controller: _depositController,
               keyboardType: TextInputType.number,
             ),
@@ -224,7 +227,7 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
             InkWell(
               onTap: _pickJoinedDate,
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'Joining date'),
+                decoration: InputDecoration(labelText: l10n.tenantsJoiningDateLabel),
                 child: Text(
                   '${_joinedDate.year}-${_joinedDate.month.toString().padLeft(2, '0')}-${_joinedDate.day.toString().padLeft(2, '0')}',
                 ),
@@ -234,10 +237,10 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
             DropdownButtonFormField<TenantStatus>(
               isExpanded: true,
               initialValue: _status,
-              decoration: const InputDecoration(labelText: 'Status'),
+              decoration: InputDecoration(labelText: l10n.commonStatus),
               items: [
                 for (final status in TenantStatus.values)
-                  DropdownMenuItem(value: status, child: Text(status.label)),
+                  DropdownMenuItem(value: status, child: Text(status.labelFor(l10n))),
               ],
               onChanged: (value) => setState(() => _status = value ?? _status),
             ),
@@ -247,10 +250,10 @@ class _AddOwnerTenantDialogState extends ConsumerState<_AddOwnerTenantDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         PrimaryButton(
-          label: 'Save',
+          label: l10n.commonSave,
           expand: false,
           isLoading: _isSaving,
           onPressed: _save,

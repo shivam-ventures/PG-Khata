@@ -21,7 +21,7 @@ void main() {
       'Manager Name': '',
     });
     expect(row.isValid, isFalse);
-    expect(row.error, 'Missing manager name');
+    expect(row.error, PropertyImportRowError.missingManagerName);
   });
 
   test('flags a non-numeric bed count', () {
@@ -32,7 +32,7 @@ void main() {
       'Manager Name': 'Someone',
     });
     expect(row.isValid, isFalse);
-    expect(row.error, 'Invalid total beds');
+    expect(row.error, PropertyImportRowError.invalidTotalBeds);
   });
 
   test('matches header names case-insensitively', () {

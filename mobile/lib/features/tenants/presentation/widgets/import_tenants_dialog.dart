@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/csv_file_picker.dart';
 import '../../../../core/utils/csv_parser.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../application/tenants_providers.dart';
@@ -59,7 +60,9 @@ class _ImportTenantsDialogState extends ConsumerState<_ImportTenantsDialog> {
     if (contents == null || !mounted) return;
     final parsedRows = parseCsvRows(contents).map(parseTenantRow).toList();
     if (parsedRows.isEmpty) {
-      setState(() => _pickError = "That file didn't have any rows to import.");
+      setState(
+        () => _pickError = AppLocalizations.of(context).propertiesImportNoRowsError,
+      );
       return;
     }
     setState(() {
@@ -94,8 +97,9 @@ class _ImportTenantsDialogState extends ConsumerState<_ImportTenantsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppDialog(
-      title: 'Import tenants',
+      title: l10n.tenantsImportTitle,
       content: switch (_step) {
         _ImportStep.pickFile => _PickFileStep(error: _pickError),
         _ImportStep.review => _ReviewStep(rows: _rows),
@@ -106,10 +110,10 @@ class _ImportTenantsDialogState extends ConsumerState<_ImportTenantsDialog> {
         _ImportStep.pickFile => [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           PrimaryButton(
-            label: 'Choose CSV file',
+            label: l10n.propertiesChooseCsvFile,
             expand: false,
             onPressed: _pickFile,
           ),
@@ -117,10 +121,10 @@ class _ImportTenantsDialogState extends ConsumerState<_ImportTenantsDialog> {
         _ImportStep.review => [
           TextButton(
             onPressed: () => setState(() => _step = _ImportStep.pickFile),
-            child: const Text('Back'),
+            child: Text(l10n.commonBack),
           ),
           PrimaryButton(
-            label: 'Import ${_validRows.length} tenants',
+            label: l10n.tenantsImportCount(_validRows.length),
             expand: false,
             onPressed: _validRows.isEmpty ? null : _confirmImport,
           ),
@@ -128,7 +132,7 @@ class _ImportTenantsDialogState extends ConsumerState<_ImportTenantsDialog> {
         _ImportStep.importing => const [],
         _ImportStep.done => [
           PrimaryButton(
-            label: 'Done',
+            label: l10n.commonDone,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -144,17 +148,18 @@ class _PickFileStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Upload a CSV file with one tenant per row.',
+          l10n.tenantsUploadCsvInstructions,
           style: AppTextStyles.body,
         ),
         const SizedBox(height: AppSpacing.space2),
         Text(
-          'Expected columns: Name, Phone, Room/Bed, Rent.',
+          l10n.tenantsExpectedColumns,
           style: AppTextStyles.bodySmall.copyWith(
             color: context.appColors.textMuted,
           ),
@@ -178,6 +183,7 @@ class _ReviewStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final validCount = rows.where((r) => r.isValid).length;
     return SizedBox(
       width: double.maxFinite,
@@ -186,7 +192,7 @@ class _ReviewStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Found ${rows.length} rows — $validCount ready to import.',
+            l10n.propertiesFoundRows(rows.length, validCount),
             style: AppTextStyles.bodySmall.copyWith(
               color: context.appColors.textMuted,
             ),
@@ -217,13 +223,21 @@ class _ReviewStep extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                row.name.isEmpty ? '(no name)' : row.name,
+                                row.name.isEmpty
+                                    ? l10n.propertiesNoNamePlaceholder
+                                    : row.name,
                                 style: AppTextStyles.rowTitle,
                               ),
                               Text(
                                 row.isValid
-                                    ? '${row.roomBed} · ₹${row.rent}${row.phone.isEmpty ? '' : ' · ${row.phone}'}'
-                                    : row.error!,
+                                    ? l10n.tenantsRowSummary(
+                                            row.roomBed,
+                                            row.rent.toString(),
+                                          ) +
+                                          (row.phone.isEmpty
+                                              ? ''
+                                              : l10n.tenantsPhoneSuffix(row.phone))
+                                    : row.error!.labelFor(l10n),
                                 style: AppTextStyles.bodySmall.copyWith(
                                   color: row.isValid
                                       ? context.appColors.textMuted
@@ -270,7 +284,10 @@ class _DoneStep extends StatelessWidget {
         Icon(Icons.check_circle, color: context.appColors.success),
         const SizedBox(width: AppSpacing.space2),
         Expanded(
-          child: Text('$count tenants imported.', style: AppTextStyles.rowTitle),
+          child: Text(
+            AppLocalizations.of(context).tenantsImportedCount(count),
+            style: AppTextStyles.rowTitle,
+          ),
         ),
       ],
     );

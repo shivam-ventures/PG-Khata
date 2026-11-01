@@ -6,6 +6,7 @@ import '../../../../core/routing/app_route.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/async_value_view.dart';
@@ -92,10 +93,11 @@ class _Header extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final properties = propertiesAsync.value ?? const <Property>[];
     final matches = properties.where((p) => p.id == propertyId);
-    final currentName = matches.isEmpty ? 'Rooms' : matches.first.name;
+    final currentName = matches.isEmpty ? l10n.roomsTitle : matches.first.name;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.space4),
@@ -125,7 +127,7 @@ class _Header extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Rooms & beds',
+                      l10n.roomsSubtitle,
                       style: AppTextStyles.bodySmall.copyWith(
                         color: context.appColors.textMuted,
                       ),
@@ -142,7 +144,7 @@ class _Header extends ConsumerWidget {
               initialValue: properties.any((p) => p.id == propertyId)
                   ? propertyId
                   : null,
-              decoration: const InputDecoration(labelText: 'PG'),
+              decoration: InputDecoration(labelText: l10n.commonPg),
               items: [
                 for (final property in properties)
                   DropdownMenuItem(
@@ -158,7 +160,7 @@ class _Header extends ConsumerWidget {
             ),
           const SizedBox(height: AppSpacing.space2),
           PrimaryButton(
-            label: 'Add Room',
+            label: l10n.roomsAddRoom,
             onPressed: () {
               final floorNames =
                   ref
@@ -197,6 +199,7 @@ class _RoomsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final floorsAsync = ref.watch(roomsProvider(propertyId));
 
     return AsyncValueView(
@@ -236,7 +239,7 @@ class _RoomsBody extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.space4),
           children: [
             AppTextField(
-              label: 'Search room or tenant',
+              label: l10n.roomsSearchLabel,
               controller: searchController,
               onChanged: (_) => onSearchChanged(),
             ),
@@ -244,19 +247,19 @@ class _RoomsBody extends ConsumerWidget {
             DropdownButtonFormField<_RoomFilter>(
               isExpanded: true,
               initialValue: filter,
-              decoration: const InputDecoration(labelText: 'Filter'),
-              items: const [
+              decoration: InputDecoration(labelText: l10n.commonFilter),
+              items: [
                 DropdownMenuItem(
                   value: _RoomFilter.all,
-                  child: Text('All rooms'),
+                  child: Text(l10n.roomsFilterAll),
                 ),
                 DropdownMenuItem(
                   value: _RoomFilter.vacant,
-                  child: Text('Has vacant bed'),
+                  child: Text(l10n.roomsFilterVacant),
                 ),
                 DropdownMenuItem(
                   value: _RoomFilter.occupied,
-                  child: Text('Fully occupied'),
+                  child: Text(l10n.roomsFilterOccupied),
                 ),
               ],
               onChanged: (value) {
@@ -265,17 +268,17 @@ class _RoomsBody extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.space1),
             Text(
-              '$matchedRooms of $totalRooms rooms',
+              l10n.roomsMatchCount(matchedRooms, totalRooms),
               style: AppTextStyles.bodySmall.copyWith(
                 color: context.appColors.textMuted,
               ),
             ),
             const SizedBox(height: AppSpacing.space4),
             if (matchedRooms == 0)
-              const EmptyState(
+              EmptyState(
                 icon: Icons.search_off,
-                title: 'No rooms match',
-                message: 'Try a different search or filter.',
+                title: l10n.roomsEmptyTitle,
+                message: l10n.roomsEmptyMessage,
               )
             else
               for (final floor in filteredFloors) ...[
@@ -295,9 +298,9 @@ class _RoomsBody extends ConsumerWidget {
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 0),
                       ),
-                      child: const Text(
-                        '+ Add tenant',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.roomsAddTenantAction,
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),

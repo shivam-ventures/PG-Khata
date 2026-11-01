@@ -1,5 +1,21 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../l10n/app_localizations.dart';
+
+/// Why a bulk-import CSV row failed validation.
+enum TenantImportRowError {
+  missingName,
+  missingRoomBed,
+  invalidRent;
+
+  String labelFor(AppLocalizations l10n) => switch (this) {
+    TenantImportRowError.missingName => l10n.tenantImportErrorMissingName,
+    TenantImportRowError.missingRoomBed =>
+      l10n.tenantImportErrorMissingRoomBed,
+    TenantImportRowError.invalidRent => l10n.tenantImportErrorInvalidRent,
+  };
+}
+
 /// One row parsed from a bulk-import CSV, validated against what
 /// the top-level `addTenant` function needs.
 @immutable
@@ -16,7 +32,7 @@ class ParsedTenantRow {
   final String phone;
   final String roomBed;
   final int? rent;
-  final String? error;
+  final TenantImportRowError? error;
 
   bool get isValid => error == null;
 }
@@ -41,13 +57,13 @@ ParsedTenantRow parseTenantRow(Map<String, String> row) {
   final rentText = _field(row, ['rent', 'monthly rent']);
   final rent = int.tryParse(rentText);
 
-  String? error;
+  TenantImportRowError? error;
   if (name.isEmpty) {
-    error = 'Missing name';
+    error = TenantImportRowError.missingName;
   } else if (roomBed.isEmpty) {
-    error = 'Missing room/bed';
+    error = TenantImportRowError.missingRoomBed;
   } else if (rent == null || rent <= 0) {
-    error = 'Invalid rent';
+    error = TenantImportRowError.invalidRent;
   }
 
   return ParsedTenantRow(

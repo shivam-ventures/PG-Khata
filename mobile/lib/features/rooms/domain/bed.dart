@@ -4,8 +4,9 @@ import 'package:flutter/foundation.dart';
 /// `docs/domain-model-notes.md`'s Bed entity.
 @immutable
 class Bed {
-  const Bed({required this.label, this.tenantName});
+  const Bed({required this.id, required this.label, this.tenantName});
 
+  final String id;
   final String label;
   final String? tenantName;
 

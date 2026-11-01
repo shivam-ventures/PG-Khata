@@ -1,0 +1,20 @@
+# Copy this file to key.properties (same directory) and fill in real values.
+# key.properties is already gitignored (android/.gitignore) — never commit
+# the real file, the .jks it points to, or these passwords anywhere,
+# including in chat with an AI assistant.
+#
+# Generate the actual upload keystore yourself with:
+#   keytool -genkey -v -keystore ~/upload-keystore.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+# It will prompt you for a store password and a key password (can be the
+# same value) and some identity fields (name/org/etc — these appear in the
+# certificate, not the app, so they don't need to be exact). Keep the
+# resulting .jks file and both passwords somewhere durable and backed up —
+# if you lose them, you cannot publish an update to an app already live on
+# Play Console under this signing key; Google cannot recover or reset it
+# for you.
+
+storePassword=REPLACE_WITH_YOUR_KEYSTORE_PASSWORD
+keyPassword=REPLACE_WITH_YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=/absolute/path/to/upload-keystore.jks

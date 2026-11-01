@@ -1,16 +1,14 @@
 import 'package:flutter/foundation.dart';
 
 /// A bed-specific invite, resolved from the token in a `/join/:token` link.
-/// Mirrors `Auth.dc.html`'s `hasInvite` branch and the URL shape Manager
-/// Rooms' "Invite via link" dialog already builds
-/// (`propertyId-room-bed`) — see `docs/domain-model-notes.md`'s open
-/// question on whether this ever needs to be a persisted, expiring entity
-/// rather than derived on demand, as it is here.
+/// Mirrors `Auth.dc.html`'s `hasInvite` branch. Backed by a real persisted,
+/// expiring `tenant_invite_links` row (`docs/backend-domain-model.md`
+/// §12.4) — the token is an opaque random string, not a derived
+/// `propertyId-room-bed` composite the way the Phase-1 mock built it.
 @immutable
 class TenantInvite {
   const TenantInvite({
     required this.token,
-    required this.propertyId,
     required this.propertyName,
     required this.room,
     required this.bed,
@@ -19,7 +17,6 @@ class TenantInvite {
   });
 
   final String token;
-  final String propertyId;
   final String propertyName;
   final String room;
   final String bed;

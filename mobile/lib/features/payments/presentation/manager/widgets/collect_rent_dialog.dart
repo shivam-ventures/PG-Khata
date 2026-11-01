@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/utils/currency_formatter.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../shared/widgets/app_dialog.dart';
 import '../../../../../shared/widgets/app_text_field.dart';
 import '../../../../../shared/widgets/primary_button.dart';
@@ -34,9 +36,18 @@ class _CollectRentDialog extends ConsumerStatefulWidget {
 }
 
 class _CollectRentDialogState extends ConsumerState<_CollectRentDialog> {
+  // Prefill/compare against the remaining balance, not the full rent — for
+  // an already-partially-paid period those differ, and prefilling the full
+  // amount would make collecting "the rest" always trigger a false
+  // mismatch warning.
   late final _amountController = TextEditingController(
-    text: widget.payment.expectedAmount.toString(),
+    text: widget.payment.outstandingAmount.toString(),
   );
+  // Generated once for this dialog instance (this submit attempt), not per
+  // tap of Save — a double-tap or a retry after `_save` fails reuses the
+  // same key, so the backend records it at most once. See
+  // `recordPayment`'s doc comment.
+  final String _idempotencyKey = const Uuid().v4();
   PaymentMethod _method = PaymentMethod.cash;
   bool _isSaving = false;
   bool _confirmingMismatch = false;
@@ -49,13 +60,14 @@ class _CollectRentDialogState extends ConsumerState<_CollectRentDialog> {
   }
 
   void _onSavePressed() {
+    final l10n = AppLocalizations.of(context);
     final amount = int.tryParse(_amountController.text.trim());
     if (amount == null || amount <= 0) {
-      setState(() => _errorText = 'Enter a valid amount');
+      setState(() => _errorText = l10n.paymentsErrorInvalidAmount);
       return;
     }
     setState(() => _errorText = null);
-    if (amount != widget.payment.expectedAmount) {
+    if (amount != widget.payment.outstandingAmount) {
       setState(() => _confirmingMismatch = true);
       return;
     }
@@ -70,6 +82,7 @@ class _CollectRentDialogState extends ConsumerState<_CollectRentDialog> {
       method: _method,
       amount: amount,
       date: DateTime.now(),
+      idempotencyKey: _idempotencyKey,
     );
     if (!mounted) return;
     if (failure != null) {
@@ -85,23 +98,27 @@ class _CollectRentDialogState extends ConsumerState<_CollectRentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (_confirmingMismatch) {
       final amount = int.parse(_amountController.text.trim());
       return AppDialog(
-        title: 'Double-check this amount',
+        title: l10n.paymentsMismatchTitle,
         content: Text(
-          "${widget.payment.tenantName}'s rent on record is "
-          '${CurrencyFormatter.rupees(widget.payment.expectedAmount)}, but '
-          "you're about to record ${CurrencyFormatter.rupees(amount)}. "
-          'Record this amount anyway?',
+          l10n.paymentsMismatchMessage(
+            widget.payment.tenantName,
+            CurrencyFormatter.rupees(widget.payment.outstandingAmount),
+            CurrencyFormatter.rupees(amount),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => setState(() => _confirmingMismatch = false),
-            child: const Text('Go back'),
+            child: Text(l10n.commonGoBack),
           ),
           PrimaryButton(
-            label: 'Yes, record ${CurrencyFormatter.rupees(amount)}',
+            label: l10n.paymentsConfirmRecordAmount(
+              CurrencyFormatter.rupees(amount),
+            ),
             expand: false,
             isLoading: _isSaving,
             onPressed: () => _save(amount),
@@ -111,13 +128,13 @@ class _CollectRentDialogState extends ConsumerState<_CollectRentDialog> {
     }
 
     return AppDialog(
-      title: 'Collect rent — ${widget.payment.tenantName}',
+      title: l10n.paymentsCollectRentTitle(widget.payment.tenantName),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AppTextField(
-              label: 'Amount',
+              label: l10n.commonAmount,
               controller: _amountController,
               keyboardType: TextInputType.number,
               errorText: _errorText,
@@ -126,10 +143,13 @@ class _CollectRentDialogState extends ConsumerState<_CollectRentDialog> {
             DropdownButtonFormField<PaymentMethod>(
               isExpanded: true,
               initialValue: _method,
-              decoration: const InputDecoration(labelText: 'Method'),
+              decoration: InputDecoration(labelText: l10n.commonMethod),
               items: [
                 for (final method in PaymentMethod.values)
-                  DropdownMenuItem(value: method, child: Text(method.label)),
+                  DropdownMenuItem(
+                    value: method,
+                    child: Text(method.labelFor(l10n)),
+                  ),
               ],
               onChanged: (value) => setState(() => _method = value ?? _method),
             ),
@@ -145,10 +165,9 @@ class _CollectRentDialogState extends ConsumerState<_CollectRentDialog> {
                 borderRadius: AppRadius.smAll,
               ),
               child: Text(
-                'This is marked "Awaiting confirmation" until '
-                '${widget.payment.tenantName} confirms it on their end — '
-                'staff-recorded payments always need that check, whatever '
-                'the method.',
+                l10n.paymentsAwaitingConfirmationNoticeFor(
+                  widget.payment.tenantName,
+                ),
                 style: TextStyle(
                   fontSize: 12,
                   color: context.appColors.textMuted,
@@ -161,10 +180,10 @@ class _CollectRentDialogState extends ConsumerState<_CollectRentDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         PrimaryButton(
-          label: 'Save',
+          label: l10n.commonSave,
           expand: false,
           isLoading: _isSaving,
           onPressed: _onSavePressed,

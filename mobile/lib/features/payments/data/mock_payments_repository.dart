@@ -269,6 +269,7 @@ class MockPaymentsRepository implements PaymentsRepository {
     required PaymentMethod method,
     required int amount,
     required DateTime date,
+    String? idempotencyKey,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     final index = _payments.indexWhere((p) => p.id == paymentId);
@@ -290,6 +291,7 @@ class MockPaymentsRepository implements PaymentsRepository {
     required PaymentMethod method,
     required int amount,
     required DateTime date,
+    String? idempotencyKey,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     final index = _payments.indexWhere((p) => p.id == paymentId);
@@ -335,6 +337,27 @@ class MockPaymentsRepository implements PaymentsRepository {
       amount: payment.expectedAmount,
       clearMethodAndPaidDate: true,
     );
+    return const Ok(null);
+  }
+
+  @override
+  Future<Result<void>> resolveDispute(
+    String paymentId, {
+    required bool paid,
+    required String note,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    final index = _payments.indexWhere((p) => p.id == paymentId);
+    if (index == -1) return const Err(UnexpectedFailure());
+    final payment = _payments[index];
+    final isPastDue = payment.dueDate.isBefore(DateTime.now());
+    _payments[index] = paid
+        ? payment.copyWith(status: PaymentStatus.paid)
+        : payment.copyWith(
+            status: isPastDue ? PaymentStatus.overdue : PaymentStatus.pending,
+            amount: payment.expectedAmount,
+            clearMethodAndPaidDate: true,
+          );
     return const Ok(null);
   }
 }

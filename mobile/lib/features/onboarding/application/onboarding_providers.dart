@@ -2,20 +2,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/result.dart';
+import '../../../core/supabase/supabase_providers.dart';
 import '../../auth/application/auth_controller.dart';
-import '../../auth/domain/app_user.dart';
-import '../../auth/domain/user_role.dart';
-import '../../rooms/application/rooms_providers.dart';
-import '../../tenants/application/tenants_providers.dart';
-import '../../tenants/domain/tenant_status.dart';
-import '../data/mock_onboarding_repository.dart';
 import '../data/onboarding_repository.dart';
+import '../data/supabase_onboarding_repository.dart';
+import '../domain/public_property_listing.dart';
 import '../domain/tenant_invite.dart';
 
-/// The single override point for swapping the onboarding data source: point
-/// this at a Supabase-backed implementation in Phase 6.
+/// The single override point for swapping the onboarding data source — was
+/// `MockOnboardingRepository()` through Phase 2; now backed by real
+/// Supabase auth + the `complete_invite_join` RPC.
 final onboardingRepositoryProvider = Provider<OnboardingRepository>(
-  (ref) => MockOnboardingRepository(),
+  (ref) => SupabaseOnboardingRepository(ref.watch(supabaseClientProvider)),
 );
 
 /// Resolves a `/join/:token` link to the bed it invites someone to.
@@ -47,47 +45,60 @@ Future<AppFailure?> verifyInviteOtp(
   return result.when(ok: (_) => null, err: (failure) => failure);
 }
 
-/// Confirms the invited person's name, then does everything their first
-/// real login needs to do: creates their tenant record, fills the bed they
-/// were invited to, burns the invite link, and signs them straight into
-/// their new Tenant session — matching `Auth.dc.html`'s "You're in" step.
+/// Confirms the invited person's name, then completes their first real
+/// login: creates their profile, fills the invited bed, burns the invite
+/// link, and signs them straight into their new Tenant session — all
+/// atomically, via [OnboardingRepository.completeJoin].
 Future<AppFailure?> completeInviteJoin(
   WidgetRef ref, {
   required TenantInvite invite,
   required String name,
   required String phoneNumber,
 }) async {
-  final addFailure = await addTenant(
-    ref,
-    name: name,
-    phone: phoneNumber,
-    propertyId: invite.propertyId,
-    propertyName: invite.propertyName,
-    roomBed: '${invite.room} - ${invite.bed}',
-    rent: invite.rentPerBed,
-    joinedDate: DateTime.now(),
-    status: TenantStatus.active,
+  final result = await ref
+      .read(onboardingRepositoryProvider)
+      .completeJoin(token: invite.token, fullName: name, phoneNumber: phoneNumber);
+  return result.when(
+    ok: (user) {
+      ref.read(authControllerProvider.notifier).completeInviteSignIn(user);
+      return null;
+    },
+    err: (failure) => failure,
   );
-  if (addFailure != null) return addFailure;
+}
 
-  await occupyBed(
-    ref,
-    invite.propertyId,
-    room: invite.room,
-    bed: invite.bed,
-    tenantName: name,
-  );
-  await ref.read(onboardingRepositoryProvider).consumeInvite(invite.token);
+/// Every PG a "pick a PG" picker can offer for direct self-registration.
+final publicPropertiesProvider = FutureProvider<List<PublicPropertyListing>>((
+  ref,
+) async {
+  final result = await ref
+      .watch(onboardingRepositoryProvider)
+      .fetchPublicProperties();
+  return result.when(ok: (v) => v, err: (failure) => throw failure);
+});
 
-  ref
-      .read(authControllerProvider.notifier)
-      .completeInviteSignIn(
-        AppUser(
-          id: 't${DateTime.now().microsecondsSinceEpoch}',
-          name: name,
-          phone: phoneNumber,
-          role: UserRole.tenant,
-        ),
+/// Confirms a direct self-registration's name, then signs the person
+/// straight into a Tenant session with no bed assigned yet — see
+/// [OnboardingRepository.selfRegister]'s doc comment for how this differs
+/// from [completeInviteJoin].
+Future<AppFailure?> selfRegisterTenant(
+  WidgetRef ref, {
+  required String fullName,
+  required String propertyId,
+  required String phoneNumber,
+}) async {
+  final result = await ref
+      .read(onboardingRepositoryProvider)
+      .selfRegister(
+        fullName: fullName,
+        propertyId: propertyId,
+        phoneNumber: phoneNumber,
       );
-  return null;
+  return result.when(
+    ok: (user) {
+      ref.read(authControllerProvider.notifier).completeInviteSignIn(user);
+      return null;
+    },
+    err: (failure) => failure,
+  );
 }

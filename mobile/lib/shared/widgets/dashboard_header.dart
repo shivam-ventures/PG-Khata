@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/app_localizations.dart';
 import 'theme_toggle_button.dart';
 
 /// The sticky header shared by the Owner Dashboard and Manager Today: a
@@ -57,7 +58,7 @@ class DashboardHeader extends StatelessWidget {
           ),
           if (onSettingsTap != null)
             IconButton(
-              tooltip: 'Settings',
+              tooltip: AppLocalizations.of(context).settingsTitle,
               icon: const Icon(Icons.settings_outlined),
               onPressed: onSettingsTap,
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/danger_button.dart';
 import '../../application/tenants_providers.dart';
@@ -14,19 +15,18 @@ Future<void> showMoveOutDialog(
   required String tenantName,
   required String propertyId,
 }) {
+  final l10n = AppLocalizations.of(context);
   return AppDialog.show<void>(
     context,
-    title: 'Mark as moved out?',
-    content: Text(
-      "$tenantName's bed will be freed and their status set to Vacated. This can't be easily undone.",
-    ),
+    title: l10n.tenantsMoveOutTitle,
+    content: Text(l10n.tenantsMoveOutMessage(tenantName)),
     actions: [
       TextButton(
         onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Cancel'),
+        child: Text(l10n.commonCancel),
       ),
       DangerButton(
-        label: 'Move out',
+        label: l10n.tenantsMoveOutButton,
         expand: false,
         onPressed: () async {
           Navigator.of(context).pop();

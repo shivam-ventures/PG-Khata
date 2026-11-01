@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
 import 'app_dialog.dart';
 
 /// What a scanned document yields — deliberately just the fields the
@@ -37,6 +38,7 @@ const _sampleScans = [
 Future<ScannedTenantFields?> pickAndScanTenantDocument(
   BuildContext context,
 ) async {
+  final l10n = AppLocalizations.of(context);
   final source = await showModalBottomSheet<ImageSource>(
     context: context,
     builder: (sheetContext) => SafeArea(
@@ -45,12 +47,12 @@ Future<ScannedTenantFields?> pickAndScanTenantDocument(
         children: [
           ListTile(
             leading: const Icon(Icons.photo_camera_outlined),
-            title: const Text('Take a photo'),
+            title: Text(l10n.documentScanTakePhoto),
             onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
           ),
           ListTile(
             leading: const Icon(Icons.photo_library_outlined),
-            title: const Text('Choose from gallery/files'),
+            title: Text(l10n.documentScanChooseFile),
             onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
           ),
         ],
@@ -100,7 +102,7 @@ class _ScanningDialogState extends State<_ScanningDialog> {
   @override
   Widget build(BuildContext context) {
     return AppDialog(
-      title: 'Reading document…',
+      title: AppLocalizations.of(context).documentScanReading,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_text_styles.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../shared/widgets/app_dialog.dart';
 import '../../../../../shared/widgets/app_text_field.dart';
 import '../../../../../shared/widgets/primary_button.dart';
@@ -13,6 +15,12 @@ import '../../../application/complaints_providers.dart';
 import '../../../domain/complaint_category.dart';
 import '../../../domain/complaint_severity.dart';
 import '../../../domain/time_preference.dart';
+
+/// Splits [items] into fixed-size groups, the last one possibly shorter.
+List<List<T>> _chunk<T>(List<T> items, int size) => [
+  for (var i = 0; i < items.length; i += size)
+    items.sublist(i, i + size > items.length ? items.length : i + size),
+];
 
 /// The Tenant's "Report an issue" dialog from `Tenant Complaints.dc.html`.
 Future<void> showReportIssueDialog(
@@ -61,6 +69,10 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
   ComplaintSeverity _severity = ComplaintSeverity.medium;
   TimePreference _timePreference = TimePreference.anytime;
   bool _isSaving = false;
+  // Generated once for this dialog instance — a double-tap or a retry
+  // after `_save` fails reuses the same key, so the backend records it at
+  // most once. See `reportComplaint`'s doc comment.
+  final String _idempotencyKey = const Uuid().v4();
 
   @override
   void dispose() {
@@ -81,6 +93,7 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
       severity: _severity,
       title: _titleController.text,
       timePreference: _timePreference,
+      idempotencyKey: _idempotencyKey,
     );
     if (!mounted) return;
     if (failure != null) {
@@ -95,40 +108,57 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppDialog(
-      title: 'Report an issue',
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      title: l10n.complaintsReportIssueTitle,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             Text(
-              'Room ${widget.room} · ${widget.propertyName}',
+              l10n.complaintRoomAndProperty(widget.room, widget.propertyName),
               style: AppTextStyles.bodySmall.copyWith(
                 color: context.appColors.textMuted,
               ),
             ),
             const SizedBox(height: AppSpacing.space3),
-            Text('Category', style: AppTextStyles.kicker),
+            Text(l10n.complaintsCategoryLabel, style: AppTextStyles.kicker),
             const SizedBox(height: AppSpacing.space2),
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppSpacing.space2,
-              crossAxisSpacing: AppSpacing.space2,
-              childAspectRatio: 1.1,
-              children: [
-                for (final category in ComplaintCategory.values)
-                  _CategoryTile(
-                    category: category,
-                    selected: category == _category,
-                    onTap: () => setState(() => _category = category),
-                  ),
-              ],
-            ),
+            // Plain Rows of Expanded tiles, 3 per row, rather than a
+            // shrink-wrapped GridView — AlertDialog's layout asks its
+            // content for intrinsic dimensions (even with `scrollable:
+            // true`), which a shrink-wrapping Sliver viewport can never
+            // answer ("RenderShrinkWrappingViewport does not support
+            // returning intrinsic dimensions"). Row/Expanded has no
+            // viewport underneath, so it can't hit that failure mode.
+            for (final row in _chunk(ComplaintCategory.values, 3)) ...[
+              Row(
+                children: [
+                  for (final category in row)
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: category == row.last
+                              ? 0
+                              : AppSpacing.space2,
+                        ),
+                        child: SizedBox(
+                          height: 64,
+                          child: _CategoryTile(
+                            category: category,
+                            selected: category == _category,
+                            onTap: () =>
+                                setState(() => _category = category),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.space2),
+            ],
             const SizedBox(height: AppSpacing.space3),
-            Text('How urgent is this?', style: AppTextStyles.kicker),
+            Text(l10n.complaintsSeverityQuestion, style: AppTextStyles.kicker),
             const SizedBox(height: AppSpacing.space2),
             Row(
               children: [
@@ -151,7 +181,7 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
             ),
             const SizedBox(height: AppSpacing.space3),
             AppTextField(
-              label: "What's wrong, and where?",
+              label: l10n.complaintsWhatsWrongLabel,
               controller: _titleController,
               maxLines: 3,
             ),
@@ -159,26 +189,25 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
             DropdownButtonFormField<TimePreference>(
               isExpanded: true,
               initialValue: _timePreference,
-              decoration: const InputDecoration(
-                labelText: 'Preferred time to fix',
+              decoration: InputDecoration(
+                labelText: l10n.complaintsPreferredTimeLabel,
               ),
               items: [
                 for (final pref in TimePreference.values)
-                  DropdownMenuItem(value: pref, child: Text(pref.label)),
+                  DropdownMenuItem(value: pref, child: Text(pref.labelFor(l10n))),
               ],
               onChanged: (value) =>
                   setState(() => _timePreference = value ?? _timePreference),
             ),
-          ],
-        ),
+        ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         PrimaryButton(
-          label: 'Submit',
+          label: l10n.commonSubmit,
           expand: false,
           isLoading: _isSaving,
           onPressed: _save,
@@ -231,7 +260,7 @@ class _CategoryTile extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              category.label,
+              category.labelFor(AppLocalizations.of(context)),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
@@ -277,7 +306,7 @@ class _SeverityTile extends StatelessWidget {
           borderRadius: AppRadius.smAll,
         ),
         child: Text(
-          severity.label,
+          severity.labelFor(AppLocalizations.of(context)),
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
         ),

@@ -40,7 +40,14 @@ class AppDialog extends StatelessWidget {
       // A dialog's own content can be taller than a short viewport allows
       // (a small phone, a landscape orientation) — scroll it instead of
       // letting it overflow the fixed space `AlertDialog` gives it.
-      content: SingleChildScrollView(child: content),
+      // `scrollable: true` (Flutter's own mechanism for this) rather than
+      // manually wrapping `content` in a `SingleChildScrollView`: the
+      // latter still measures content's intrinsic height/width for layout,
+      // which throws for any content containing a shrink-wrapping Sliver
+      // viewport (GridView/ListView with shrinkWrap: true) or a
+      // LayoutBuilder — both can't answer that query.
+      scrollable: true,
+      content: content,
       actionsPadding: const EdgeInsets.fromLTRB(
         AppSpacing.space4,
         0,

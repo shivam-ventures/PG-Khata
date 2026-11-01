@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'deposit_settlement.dart';
 import 'tenant_status.dart';
 
 /// A tenant assigned to a bed. Mirrors `docs/domain-model-notes.md`'s
@@ -18,6 +19,9 @@ class TenantRecord {
     required this.joinedDate,
     required this.status,
     this.depositAmount,
+    this.moveOutDate,
+    this.noticeGivenAt,
+    this.depositSettlement,
   });
 
   final String id;
@@ -35,8 +39,33 @@ class TenantRecord {
   /// stays optional rather than derived from rent.
   final int? depositAmount;
 
+  /// Set once notice is given ([TenantStatus.noticePeriod]) or once moved
+  /// out — the planned date while in notice, the actual date afterward
+  /// (they're always the same by construction: finalizing a notice never
+  /// changes the date, it only flips the status).
+  final DateTime? moveOutDate;
+
+  /// When notice was recorded — `null` for a tenancy that's never had one
+  /// (including a direct, zero-notice move-out, which never goes through
+  /// [TenantStatus.noticePeriod] at all).
+  final DateTime? noticeGivenAt;
+
+  final DepositSettlement? depositSettlement;
+
+  /// The immediate, no-notice action — always available while the tenancy
+  /// hasn't already ended, same as before this had a notice period at all.
   bool get canMoveOut =>
       status == TenantStatus.active || status == TenantStatus.noticePeriod;
+
+  bool get canGiveNotice => status == TenantStatus.active;
+
+  bool get canCancelNotice => status == TenantStatus.noticePeriod;
+
+  /// Staff can confirm a pending deposit was actually handed back once
+  /// there's something to settle — regardless of how it got resolved,
+  /// matching the backend's own "professional judgment override" allowance.
+  bool get canMarkDepositReturned =>
+      depositSettlement != null && depositSettlement != DepositSettlement.returned;
 
   TenantRecord copyWith({
     String? name,
@@ -57,6 +86,9 @@ class TenantRecord {
       joinedDate: joinedDate ?? this.joinedDate,
       status: status ?? this.status,
       depositAmount: depositAmount ?? this.depositAmount,
+      moveOutDate: moveOutDate,
+      noticeGivenAt: noticeGivenAt,
+      depositSettlement: depositSettlement,
     );
   }
 }

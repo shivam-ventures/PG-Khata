@@ -34,5 +34,28 @@ abstract interface class TenantsRepository {
     int? depositAmount,
   });
 
+  /// The immediate, no-notice move-out — unchanged by the notice-period
+  /// flow below; a zero-notice move-out forfeits the deposit by the same
+  /// rule any other short notice does.
   Future<Result<TenantRecord>> moveOutTenant(String tenantId);
+
+  /// Puts an active tenancy into [TenantStatus.noticePeriod]. Fewer than 15
+  /// days' notice fails with [ShortNoticeFailure] unless
+  /// [acknowledgeForfeiture] is true, in which case it succeeds with the
+  /// deposit marked forfeited — see `evaluate_move_out_notice` on the
+  /// backend for the single place this policy lives.
+  Future<Result<TenantRecord>> requestMoveOut(
+    String tenantId, {
+    required DateTime moveOutDate,
+    bool acknowledgeForfeiture = false,
+  });
+
+  /// Reverts a [TenantStatus.noticePeriod] tenancy back to active — the
+  /// tenant changed their mind, or staff recorded the notice in error.
+  Future<Result<TenantRecord>> cancelMoveOutNotice(String tenantId);
+
+  /// Staff confirming a pending (or previously forfeited/returned, as an
+  /// override) deposit was actually handed back outside the app — this
+  /// never moves real money itself, only records that it happened.
+  Future<Result<TenantRecord>> markDepositReturned(String tenantId);
 }

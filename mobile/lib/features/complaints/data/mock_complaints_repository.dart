@@ -97,6 +97,7 @@ class MockComplaintsRepository implements ComplaintsRepository {
     required ComplaintSeverity severity,
     required String title,
     required TimePreference timePreference,
+    String? idempotencyKey,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     final complaint = Complaint(

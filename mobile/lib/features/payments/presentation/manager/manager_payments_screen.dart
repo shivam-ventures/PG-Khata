@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/list_row_card.dart';
@@ -23,6 +24,7 @@ class ManagerPaymentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final propertyId = ref.watch(managerSelectedPgIdProvider);
     final paymentsAsync = ref.watch(latestPaymentsProvider(propertyId));
 
@@ -36,7 +38,7 @@ class ManagerPaymentsScreen extends ConsumerWidget {
             0,
           ),
           child: Text(
-            'Collect Rent',
+            l10n.managerCollectRent,
             style: AppTextStyles.screenTitle.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -63,11 +65,12 @@ class _CollectRentBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     if (payments.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.payments_outlined,
-        title: 'No tenants to collect from here yet',
-        message: 'Rent rows show up once tenants are assigned a bed.',
+        title: l10n.managerPaymentsEmptyTitle,
+        message: l10n.managerPaymentsEmptyMessage,
       );
     }
     return ListView(
@@ -86,7 +89,14 @@ class _CollectRentBody extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    CurrencyFormatter.rupees(payment.amount),
+                    // What's still owed for pending/overdue/partial (the
+                    // rows with a Collect button); what was paid/claimed
+                    // otherwise. See RentPayment.outstandingAmount.
+                    CurrencyFormatter.rupees(
+                      payment.status.isCollectable
+                          ? payment.outstandingAmount
+                          : payment.amount,
+                    ),
                     style: AppTextStyles.rowTitle.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -106,7 +116,7 @@ class _CollectRentBody extends ConsumerWidget {
                         minimumSize: Size.zero,
                         textStyle: const TextStyle(fontSize: 12),
                       ),
-                      child: const Text('Collect'),
+                      child: Text(l10n.managerCollect),
                     )
                   else
                     // A capped width, not Flexible — the chip sits beside
@@ -118,7 +128,7 @@ class _CollectRentBody extends ConsumerWidget {
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 116),
                       child: StatusChip(
-                        label: payment.status.label,
+                        label: payment.status.labelFor(l10n),
                         tone: payment.status.tone,
                       ),
                     ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/app_localizations.dart';
 import 'primary_button.dart';
 import 'semantic_tone.dart';
 
@@ -48,7 +49,10 @@ class ErrorState extends StatelessWidget {
           ),
           if (onRetry != null) ...[
             const SizedBox(height: AppSpacing.space4),
-            PrimaryButton(label: 'Try again', onPressed: onRetry),
+            PrimaryButton(
+              label: AppLocalizations.of(context).commonTryAgain,
+              onPressed: onRetry,
+            ),
           ],
         ],
       ),

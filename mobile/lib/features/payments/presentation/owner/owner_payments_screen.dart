@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_label_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/cta_card.dart';
@@ -22,6 +23,7 @@ import '../../domain/payment_status.dart';
 import '../../domain/rent_payment.dart';
 import '../widgets/void_payment_dialog.dart';
 import 'widgets/record_payment_dialog.dart';
+import 'widgets/resolve_dispute_dialog.dart';
 
 /// The Owner's whole-portfolio rent ledger. Mirrors `Owner Payments.dc.html`.
 /// Reached from Owner's "More" menu — not a bottom-nav tab, so this provides
@@ -36,10 +38,11 @@ class OwnerPaymentsScreen extends ConsumerStatefulWidget {
 
 class _OwnerPaymentsScreenState extends ConsumerState<OwnerPaymentsScreen> {
   String _propertyFilter = 'all';
-  String _statusFilter = 'all';
+  PaymentStatus? _statusFilter;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final propertiesAsync = ref.watch(propertiesProvider);
     final paymentsAsync = ref.watch(latestPaymentsProvider(null));
 
@@ -67,13 +70,13 @@ class _OwnerPaymentsScreenState extends ConsumerState<OwnerPaymentsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Payments',
+                        l10n.ownerPayments,
                         style: AppTextStyles.screenTitle.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       Text(
-                        'Rent ledger across your portfolio',
+                        l10n.ownerPaymentsSubtitle,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: context.appColors.textMuted,
                         ),
@@ -125,22 +128,32 @@ class _OwnerPaymentsBody extends ConsumerWidget {
   final List<Property> properties;
   final List<RentPayment> payments;
   final String propertyFilter;
-  final String statusFilter;
+  final PaymentStatus? statusFilter;
   final ValueChanged<String> onPropertyFilterChanged;
-  final ValueChanged<String> onStatusFilterChanged;
+  final ValueChanged<PaymentStatus?> onStatusFilterChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final collected = _sum(payments, PaymentStatus.paid);
+    final l10n = AppLocalizations.of(context);
+    // For a `partial` period, `amount` is the confirmed-paid portion (real
+    // money in hand), not the full rent — so it belongs in `collected`, and
+    // the still-owed remainder (`outstandingAmount`) belongs in `expected`
+    // alongside pending/overdue, not the raw `amount`. See
+    // RentPayment.outstandingAmount / backend migration 33.
+    final collected =
+        _sum(payments, PaymentStatus.paid) + _sum(payments, PaymentStatus.partial);
     final pending = _sum(payments, PaymentStatus.pending);
     final overdue = _sum(payments, PaymentStatus.overdue);
+    final partialOutstanding = payments
+        .where((p) => p.status == PaymentStatus.partial)
+        .fold<int>(0, (total, p) => total + p.outstandingAmount);
     final needsReview =
         _sum(payments, PaymentStatus.awaitingConfirmation) +
         _sum(payments, PaymentStatus.disputed);
     final needsReviewCount =
         _count(payments, PaymentStatus.awaitingConfirmation) +
         _count(payments, PaymentStatus.disputed);
-    final expected = collected + pending + overdue;
+    final expected = collected + pending + overdue + partialOutstanding;
     final collectionRate = expected == 0
         ? 0
         : (collected / expected * 100).round();
@@ -148,45 +161,44 @@ class _OwnerPaymentsBody extends ConsumerWidget {
     final filtered = payments.where((p) {
       final matchesProperty =
           propertyFilter == 'all' || p.propertyName == propertyFilter;
-      final matchesStatus =
-          statusFilter == 'all' || p.status.label == statusFilter;
+      final matchesStatus = statusFilter == null || p.status == statusFilter;
       return matchesProperty && matchesStatus;
     }).toList();
 
     final paymentStats = [
       StatCard(
         icon: Icons.check_circle_outline,
-        label: 'Collected',
+        label: l10n.paymentsStatCollected,
         value: CurrencyFormatter.rupees(collected),
-        sub: 'this month',
+        sub: l10n.paymentsStatCollectedSub,
         tone: SemanticTone.success,
       ),
       StatCard(
         icon: Icons.hourglass_bottom,
-        label: 'Pending',
+        label: l10n.paymentsStatPending,
         value: CurrencyFormatter.rupees(pending),
-        sub: '${_count(payments, PaymentStatus.pending)} tenants',
+        sub: l10n.statPendingRentSub(_count(payments, PaymentStatus.pending)),
         tone: SemanticTone.warning,
       ),
       StatCard(
         icon: Icons.warning_amber_rounded,
-        label: 'Overdue',
+        label: l10n.paymentsStatOverdue,
         value: CurrencyFormatter.rupees(overdue),
-        sub: '${_count(payments, PaymentStatus.overdue)} tenants',
+        sub: l10n.statPendingRentSub(_count(payments, PaymentStatus.overdue)),
         tone: SemanticTone.danger,
       ),
       StatCard(
         icon: Icons.bar_chart,
-        label: 'Collection rate',
+        label: l10n.paymentsStatCollectionRate,
         value: '$collectionRate%',
-        sub: 'of expected',
+        sub: l10n.paymentsStatCollectionRateSub,
         tone: SemanticTone.accent,
       ),
       StatCard(
         icon: Icons.flag_outlined,
-        label: 'Needs review',
+        label: l10n.paymentsStatNeedsReview,
         value: CurrencyFormatter.rupees(needsReview),
-        sub: '$needsReviewCount tenants',
+        sub: l10n.statPendingRentSub(needsReviewCount),
         tone: SemanticTone.info,
       ),
     ];
@@ -196,8 +208,8 @@ class _OwnerPaymentsBody extends ConsumerWidget {
       children: [
         CtaCard(
           icon: Icons.add,
-          title: 'Record payment',
-          subtitle: 'Log a cash, UPI or bank transfer',
+          title: l10n.paymentsRecordPaymentTitle,
+          subtitle: l10n.paymentsRecordPaymentSubtitle,
           onTap: () => showRecordPaymentDialog(context, payments: payments),
         ),
         const SizedBox(height: AppSpacing.space4),
@@ -227,9 +239,9 @@ class _OwnerPaymentsBody extends ConsumerWidget {
         DropdownButtonFormField<String>(
           isExpanded: true,
           initialValue: propertyFilter,
-          decoration: const InputDecoration(labelText: 'PG'),
+          decoration: InputDecoration(labelText: l10n.commonPg),
           items: [
-            const DropdownMenuItem(value: 'all', child: Text('All PGs')),
+            DropdownMenuItem(value: 'all', child: Text(l10n.commonAllPgs)),
             for (final property in properties)
               DropdownMenuItem(
                 value: property.name,
@@ -241,31 +253,26 @@ class _OwnerPaymentsBody extends ConsumerWidget {
           },
         ),
         const SizedBox(height: AppSpacing.space2),
-        DropdownButtonFormField<String>(
+        DropdownButtonFormField<PaymentStatus?>(
           isExpanded: true,
           initialValue: statusFilter,
-          decoration: const InputDecoration(labelText: 'Status'),
-          items: const [
-            DropdownMenuItem(value: 'all', child: Text('All statuses')),
-            DropdownMenuItem(value: 'Paid', child: Text('Paid')),
-            DropdownMenuItem(value: 'Pending', child: Text('Pending')),
-            DropdownMenuItem(value: 'Overdue', child: Text('Overdue')),
+          decoration: InputDecoration(labelText: l10n.commonStatus),
+          items: [
             DropdownMenuItem(
-              value: 'Awaiting confirmation',
-              child: Text('Awaiting confirmation'),
+              value: null,
+              child: Text(l10n.paymentsFilterAllStatuses),
             ),
-            DropdownMenuItem(value: 'Disputed', child: Text('Disputed')),
+            for (final status in PaymentStatus.values)
+              DropdownMenuItem(value: status, child: Text(status.labelFor(l10n))),
           ],
-          onChanged: (value) {
-            if (value != null) onStatusFilterChanged(value);
-          },
+          onChanged: onStatusFilterChanged,
         ),
         const SizedBox(height: AppSpacing.space4),
         if (filtered.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.receipt_long_outlined,
-            title: 'No payments match',
-            message: 'Try a different PG or status filter.',
+            title: l10n.paymentsEmptyTitle,
+            message: l10n.paymentsEmptyMessage,
           )
         else
           for (final payment in filtered)
@@ -273,26 +280,41 @@ class _OwnerPaymentsBody extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: AppSpacing.space2),
               child: ListRowCard(
                 title: payment.tenantName,
-                subtitle:
-                    '${payment.propertyName} · ${payment.room} · '
-                    'due ${DateLabelFormatter.short(payment.dueDate)}',
-                onOverflow: payment.method == null
-                    ? null
-                    : () =>
-                          showVoidPaymentDialog(context, ref, payment: payment),
+                subtitle: l10n.paymentsRowSubtitleDue(
+                  payment.propertyName,
+                  payment.room,
+                  DateLabelFormatter.short(payment.dueDate),
+                ),
+                onOverflow: switch (payment.status) {
+                  PaymentStatus.disputed => () => showResolveDisputeDialog(
+                    context,
+                    ref,
+                    payment: payment,
+                  ),
+                  _ when payment.method != null => () =>
+                      showVoidPaymentDialog(context, ref, payment: payment),
+                  _ => null,
+                },
                 trailing: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      CurrencyFormatter.rupees(payment.amount),
+                      // What's still owed for pending/overdue/partial; what
+                      // was paid/claimed otherwise. See
+                      // RentPayment.outstandingAmount.
+                      CurrencyFormatter.rupees(
+                        payment.status.isCollectable
+                            ? payment.outstandingAmount
+                            : payment.amount,
+                      ),
                       style: AppTextStyles.rowTitle.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 2),
                     StatusChip(
-                      label: payment.status.label,
+                      label: payment.status.labelFor(l10n),
                       tone: payment.status.tone,
                     ),
                   ],

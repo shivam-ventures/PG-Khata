@@ -5,6 +5,7 @@ import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/app_localizations.dart';
 
 /// The `.list-card` pattern: a title/subtitle pair, a trailing widget (a
 /// status chip, an amount, a button), and an optional overflow action —
@@ -66,7 +67,7 @@ class ListRowCard extends StatelessWidget {
           if (onOverflow != null)
             IconButton(
               icon: const Icon(Icons.more_vert, size: 18),
-              tooltip: 'More actions',
+              tooltip: AppLocalizations.of(context).commonMoreActions,
               onPressed: onOverflow,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

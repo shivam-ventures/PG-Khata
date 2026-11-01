@@ -22,9 +22,9 @@ class MockRoomsRepository implements RoomsRepository {
             sharingType: SharingType.triple,
             rentPerBed: 6500,
             beds: [
-              Bed(label: 'A', tenantName: 'Ravi Kumar'),
-              Bed(label: 'B', tenantName: 'Amit Shah'),
-              Bed(label: 'C'),
+              Bed(id: 'hsr-101-A', label: 'A', tenantName: 'Ravi Kumar'),
+              Bed(id: 'hsr-101-B', label: 'B', tenantName: 'Amit Shah'),
+              Bed(id: 'hsr-101-C', label: 'C'),
             ],
           ),
           Room(
@@ -33,8 +33,8 @@ class MockRoomsRepository implements RoomsRepository {
             sharingType: SharingType.double_,
             rentPerBed: 7500,
             beds: [
-              Bed(label: 'A', tenantName: 'Suresh Naik'),
-              Bed(label: 'B', tenantName: 'Deepak Rao'),
+              Bed(id: 'hsr-102-A', label: 'A', tenantName: 'Suresh Naik'),
+              Bed(id: 'hsr-102-B', label: 'B', tenantName: 'Deepak Rao'),
             ],
           ),
         ],
@@ -48,9 +48,9 @@ class MockRoomsRepository implements RoomsRepository {
             sharingType: SharingType.triple,
             rentPerBed: 6500,
             beds: [
-              Bed(label: 'A', tenantName: 'Manoj Patil'),
-              Bed(label: 'B'),
-              Bed(label: 'C'),
+              Bed(id: 'hsr-201-A', label: 'A', tenantName: 'Manoj Patil'),
+              Bed(id: 'hsr-201-B', label: 'B'),
+              Bed(id: 'hsr-201-C', label: 'C'),
             ],
           ),
           Room(
@@ -58,7 +58,7 @@ class MockRoomsRepository implements RoomsRepository {
             floor: 'First Floor',
             sharingType: SharingType.single,
             rentPerBed: 9000,
-            beds: [Bed(label: 'A', tenantName: 'Ayesha Khan')],
+            beds: [Bed(id: 'hsr-A-108-A', label: 'A', tenantName: 'Ayesha Khan')],
           ),
         ],
       ),
@@ -70,7 +70,7 @@ class MockRoomsRepository implements RoomsRepository {
             floor: 'Second Floor',
             sharingType: SharingType.single,
             rentPerBed: 8500,
-            beds: [Bed(label: 'A', tenantName: 'Rahul Sharma')],
+            beds: [Bed(id: 'hsr-B-204-A', label: 'A', tenantName: 'Rahul Sharma')],
           ),
         ],
       ),
@@ -82,7 +82,7 @@ class MockRoomsRepository implements RoomsRepository {
             floor: 'Third Floor',
             sharingType: SharingType.single,
             rentPerBed: 7500,
-            beds: [Bed(label: 'A', tenantName: 'Vikram Rao')],
+            beds: [Bed(id: 'hsr-C-301-A', label: 'A', tenantName: 'Vikram Rao')],
           ),
         ],
       ),
@@ -97,8 +97,8 @@ class MockRoomsRepository implements RoomsRepository {
             sharingType: SharingType.double_,
             rentPerBed: 8000,
             beds: [
-              Bed(label: 'A', tenantName: 'Vikas Gowda'),
-              Bed(label: 'B', tenantName: 'Rahul Jain'),
+              Bed(id: 'kor-G1-A', label: 'A', tenantName: 'Vikas Gowda'),
+              Bed(id: 'kor-G1-B', label: 'B', tenantName: 'Rahul Jain'),
             ],
           ),
         ],
@@ -113,7 +113,7 @@ class MockRoomsRepository implements RoomsRepository {
             floor: 'Ground Floor',
             sharingType: SharingType.single,
             rentPerBed: 12000,
-            beds: [Bed(label: 'A', tenantName: 'Priya Menon')],
+            beds: [Bed(id: 'ind-G1-A', label: 'A', tenantName: 'Priya Menon')],
           ),
         ],
       ),
@@ -142,7 +142,10 @@ class MockRoomsRepository implements RoomsRepository {
       rentPerBed: rentPerBed,
       beds: [
         for (var i = 0; i < sharingType.bedCount; i++)
-          Bed(label: String.fromCharCode(65 + i)),
+          Bed(
+            id: '$propertyId-$number-${String.fromCharCode(65 + i)}',
+            label: String.fromCharCode(65 + i),
+          ),
       ],
     );
     final floors = List<Floor>.from(_floorsByProperty[propertyId] ?? const []);
@@ -185,7 +188,7 @@ class MockRoomsRepository implements RoomsRepository {
                   beds: [
                     for (final b in r.beds)
                       if (b.label == bed)
-                        Bed(label: b.label, tenantName: tenantName)
+                        Bed(id: b.id, label: b.label, tenantName: tenantName)
                       else
                         b,
                   ],

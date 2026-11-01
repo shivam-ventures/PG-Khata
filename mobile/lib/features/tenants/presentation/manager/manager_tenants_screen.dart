@@ -5,6 +5,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/date_label_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/cta_card.dart';
@@ -20,7 +22,7 @@ import '../../application/tenants_providers.dart';
 import '../../domain/tenant_record.dart';
 import '../widgets/add_edit_manager_tenant_dialog.dart';
 import '../widgets/import_tenants_dialog.dart';
-import '../widgets/move_out_dialog.dart';
+import '../widgets/tenant_actions_sheet.dart';
 
 /// Resolves a property's display name from the real roster — falling back
 /// to the raw id only if the properties list hasn't loaded yet, so this
@@ -78,6 +80,7 @@ class _ManagerTenantsScreenState extends ConsumerState<ManagerTenantsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final propertyId = ref.watch(managerSelectedPgIdProvider);
     final tenantsAsync = ref.watch(tenantsProvider(propertyId));
     final pendingAsync = ref.watch(pendingTenantsProvider(propertyId));
@@ -101,7 +104,7 @@ class _ManagerTenantsScreenState extends ConsumerState<ManagerTenantsScreen> {
                   padding: EdgeInsets.zero,
                 ),
                 Text(
-                  'Tenants',
+                  l10n.tenantsTitle,
                   style: AppTextStyles.screenTitle.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -141,14 +144,15 @@ class _TenantsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final propertyName = _propertyName(ref, propertyId);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.space4),
       children: [
         CtaCard(
           icon: Icons.person_add_alt,
-          title: 'Add tenant',
-          subtitle: 'Manually add someone with a known bed & rent',
+          title: l10n.tenantsAddTenant,
+          subtitle: l10n.tenantsAddManuallySubtitle,
           onTap: () => showAddManagerTenantDialog(
             context,
             propertyId: propertyId,
@@ -158,8 +162,8 @@ class _TenantsBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.space2),
         CtaCard(
           icon: Icons.upload_file_outlined,
-          title: 'Import tenants',
-          subtitle: 'Bulk-add from a CSV file',
+          title: l10n.tenantsImportTitle,
+          subtitle: l10n.propertiesImportPgsSubtitle,
           onTap: () => showImportTenantsDialog(
             context,
             propertyId: propertyId,
@@ -169,7 +173,7 @@ class _TenantsBody extends ConsumerWidget {
         if (pending.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.space4),
           Text(
-            'SELF-REGISTERED — NEEDS A BED',
+            l10n.tenantsSelfRegisteredHeader,
             style: AppTextStyles.kickerUppercase.copyWith(
               color: context.appColors.info,
             ),
@@ -191,10 +195,10 @@ class _TenantsBody extends ConsumerWidget {
         ],
         const SizedBox(height: AppSpacing.space4),
         if (tenants.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.people_outline,
-            title: 'No tenants yet',
-            message: 'Add your first tenant above.',
+            title: l10n.managerTenantsEmptyTitle,
+            message: l10n.managerTenantsEmptyMessage,
           )
         else
           for (final tenant in tenants)
@@ -204,19 +208,32 @@ class _TenantsBody extends ConsumerWidget {
                 title: tenant.name,
                 subtitle:
                     '${tenant.roomBed} · ${CurrencyFormatter.rupees(tenant.rent)}'
-                    '${tenant.depositAmount == null ? '' : ' · ${CurrencyFormatter.rupees(tenant.depositAmount!)} deposit'}',
-                trailing: StatusChip(
-                  label: tenant.status.label,
-                  tone: tenant.status.tone,
+                    '${tenant.depositAmount == null ? '' : l10n.tenantsDepositSuffix(CurrencyFormatter.rupees(tenant.depositAmount!))}'
+                    '${tenant.moveOutDate == null ? '' : l10n.tenantsMovingOutSuffix(DateLabelFormatter.short(tenant.moveOutDate!))}',
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    StatusChip(
+                      label: tenant.status.labelFor(l10n),
+                      tone: tenant.status.tone,
+                    ),
+                    if (tenant.depositSettlement != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: StatusChip(
+                          label: tenant.depositSettlement!.labelFor(l10n),
+                          tone: tenant.depositSettlement!.tone,
+                        ),
+                      ),
+                  ],
                 ),
-                onOverflow: tenant.canMoveOut
-                    ? () => showMoveOutDialog(
-                        context,
-                        ref,
-                        tenantId: tenant.id,
-                        tenantName: tenant.name,
-                        propertyId: propertyId,
-                      )
+                onOverflow:
+                    (tenant.canGiveNotice ||
+                        tenant.canCancelNotice ||
+                        tenant.canMoveOut ||
+                        tenant.canMarkDepositReturned)
+                    ? () => showTenantActionsSheet(context, ref, tenant: tenant)
                     : null,
               ),
             ),
@@ -233,6 +250,7 @@ class _PendingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.space3,
@@ -251,7 +269,7 @@ class _PendingCard extends StatelessWidget {
               children: [
                 Text(person.name, style: AppTextStyles.rowTitle),
                 Text(
-                  '${person.phone} · joined via self-signup',
+                  l10n.tenantsPendingPhoneSelfSignup(person.phone),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: context.appColors.textMuted,
                   ),
@@ -260,7 +278,7 @@ class _PendingCard extends StatelessWidget {
             ),
           ),
           PrimaryButton(
-            label: 'Assign bed',
+            label: l10n.tenantsAssignBed,
             onPressed: onAssign,
             expand: false,
           ),

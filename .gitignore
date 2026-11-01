@@ -9,6 +9,7 @@
 
 # Supabase CLI local cache
 supabase/.temp/
+supabase/node_modules/
 
 # Flutter / Dart (app lives in mobile/ once created)
 mobile/build/

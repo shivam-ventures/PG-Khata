@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_text_styles.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../shared/widgets/app_dialog.dart';
 import '../../../../../shared/widgets/app_text_field.dart';
 import '../../../../../shared/widgets/primary_button.dart';
@@ -79,6 +80,7 @@ class _ComplaintActionDialogState extends ConsumerState<_ComplaintActionDialog> 
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final complaint = widget.complaint;
     final eff = complaint.effectiveStatus;
 
@@ -90,8 +92,11 @@ class _ComplaintActionDialogState extends ConsumerState<_ComplaintActionDialog> 
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${complaint.room} · ${complaint.tenantName} · '
-              'prefers ${complaint.timePreference.label}',
+              l10n.complaintRoomTenantPrefers(
+                complaint.room,
+                complaint.tenantName,
+                complaint.timePreference.labelFor(l10n),
+              ),
               style: AppTextStyles.bodySmall.copyWith(
                 color: context.appColors.textMuted,
               ),
@@ -103,8 +108,8 @@ class _ComplaintActionDialogState extends ConsumerState<_ComplaintActionDialog> 
                 initialValue: _assignees.contains(_assignee)
                     ? _assignee
                     : _assignees.first,
-                decoration: const InputDecoration(
-                  labelText: "Who's handling this?",
+                decoration: InputDecoration(
+                  labelText: l10n.complaintsWhosHandlingThis,
                 ),
                 items: [
                   for (final option in _assignees)
@@ -115,14 +120,13 @@ class _ComplaintActionDialogState extends ConsumerState<_ComplaintActionDialog> 
               ),
               const SizedBox(height: AppSpacing.space3),
               AppTextField(
-                label: 'Note (optional)',
+                label: l10n.commonNoteOptional,
                 controller: _noteController,
                 maxLines: 2,
               ),
               const SizedBox(height: AppSpacing.space2),
               Text(
-                "Ticket auto-closes in 3 days unless the tenant says it's "
-                'still not fixed — no need to come back and mark it done.',
+                l10n.complaintsAutoCloseNotice,
                 style: AppTextStyles.bodySmall.copyWith(
                   fontSize: 11.5,
                   color: context.appColors.textMuted,
@@ -131,8 +135,10 @@ class _ComplaintActionDialogState extends ConsumerState<_ComplaintActionDialog> 
             ] else ...[
               Text(
                 eff == ComplaintStatus.resolved
-                    ? 'Resolved'
-                    : 'Delegated to ${complaint.delegatedTo}',
+                    ? l10n.complaintStatusResolved
+                    : l10n.complaintDelegatedToAssignee(
+                        complaint.delegatedTo ?? '',
+                      ),
                 style: AppTextStyles.rowTitle,
               ),
               const SizedBox(height: 4),
@@ -145,11 +151,11 @@ class _ComplaintActionDialogState extends ConsumerState<_ComplaintActionDialog> 
                   // the stored `status`, not just the computed `eff`.
                   ComplaintStatus.resolved
                       when complaint.status == ComplaintStatus.delegated =>
-                    "Closed automatically — tenant didn't report it again.",
-                  ComplaintStatus.resolved => 'Marked resolved by you.',
-                  _ =>
-                    'Auto-resolves in ${complaint.autoResolveDaysLeft}d '
-                        "unless the tenant says it's still not fixed.",
+                    l10n.complaintClosedAutomaticallyDetail,
+                  ComplaintStatus.resolved => l10n.complaintMarkedResolvedByYouDetail,
+                  _ => l10n.complaintAutoResolvesInDetail(
+                    complaint.autoResolveDaysLeft,
+                  ),
                 },
                 style: AppTextStyles.bodySmall.copyWith(
                   color: context.appColors.textSecondary,
@@ -163,10 +169,10 @@ class _ComplaintActionDialogState extends ConsumerState<_ComplaintActionDialog> 
           ? [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
+                child: Text(l10n.commonCancel),
               ),
               PrimaryButton(
-                label: 'Delegate & done',
+                label: l10n.complaintsDelegateAndDone,
                 expand: false,
                 isLoading: _isBusy,
                 onPressed: _delegate,
@@ -178,15 +184,15 @@ class _ComplaintActionDialogState extends ConsumerState<_ComplaintActionDialog> 
               if (eff == ComplaintStatus.delegated)
                 TextButton(
                   onPressed: () => setState(() => _delegateMode = true),
-                  child: const Text('Reassign'),
+                  child: Text(l10n.complaintsReassign),
                 ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                child: Text(l10n.commonClose),
               ),
               if (eff == ComplaintStatus.delegated)
                 PrimaryButton(
-                  label: 'Mark resolved now',
+                  label: l10n.complaintsMarkResolvedNow,
                   expand: false,
                   isLoading: _isBusy,
                   onPressed: _resolveNow,

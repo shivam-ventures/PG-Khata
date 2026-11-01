@@ -6,6 +6,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/relative_time_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/cta_card.dart';
 import '../../../../shared/widgets/empty_state.dart';
@@ -28,6 +29,7 @@ class TenantComplaintsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final tenantAsync = ref.watch(currentTenantRecordProvider);
 
     return Column(
@@ -40,7 +42,7 @@ class TenantComplaintsScreen extends ConsumerWidget {
             0,
           ),
           child: Text(
-            'Complaints',
+            l10n.complaintsTitle,
             style: AppTextStyles.screenTitle.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -52,12 +54,10 @@ class TenantComplaintsScreen extends ConsumerWidget {
             onRetry: () => ref.invalidate(currentTenantRecordProvider),
             loading: (context) => const _ComplaintsSkeleton(),
             data: (context, tenant) => tenant == null
-                ? const EmptyState(
+                ? EmptyState(
                     icon: Icons.home_work_outlined,
-                    title: 'No room assigned yet',
-                    message:
-                        "Once a manager assigns you a bed, you'll be able "
-                        "to report issues here.",
+                    title: l10n.tenantNoRoomTitle,
+                    message: l10n.tenantComplaintsNoRoomMessage,
                   )
                 : _TenantComplaintsForTenant(tenant: tenant),
           ),
@@ -93,13 +93,14 @@ class _TenantComplaintsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.space4),
       children: [
         CtaCard(
           icon: Icons.add,
-          title: 'Report an issue',
-          subtitle: 'Plumbing, electrical, wifi & more',
+          title: l10n.complaintsReportIssueTitle,
+          subtitle: l10n.tenantComplaintsReportSubtitle,
           onTap: () => showReportIssueDialog(
             context,
             propertyId: tenant.propertyId,
@@ -111,10 +112,10 @@ class _TenantComplaintsBody extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.space4),
         if (complaints.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.check_circle_outline,
-            title: 'No complaints reported',
-            message: "You're all clear.",
+            title: l10n.tenantComplaintsEmptyTitle,
+            message: l10n.tenantComplaintsEmptyMessage,
           )
         else
           for (final complaint in complaints)
@@ -134,19 +135,21 @@ class _ComplaintRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final eff = complaint.effectiveStatus;
     final ageVerb = switch (eff) {
-      ComplaintStatus.resolved => 'Resolved',
-      ComplaintStatus.reopened => 'Reopened',
-      _ => 'Reported',
+      ComplaintStatus.resolved => l10n.complaintStatusResolved,
+      ComplaintStatus.reopened => l10n.complaintStatusReopened,
+      _ => l10n.complaintStatusReported,
     };
     final subtext = switch (eff) {
-      ComplaintStatus.delegated =>
-        'Being handled by ${complaint.delegatedTo} · '
-            'auto-closes in ${complaint.autoResolveDaysLeft}d',
+      ComplaintStatus.delegated => l10n.tenantComplaintDelegatedSub(
+        complaint.delegatedTo ?? '',
+        complaint.autoResolveDaysLeft,
+      ),
       ComplaintStatus.resolved when complaint.status == ComplaintStatus.delegated =>
-        'Closed automatically',
+        l10n.complaintsClosedAutomatically,
       _ => null,
     };
 
@@ -184,9 +187,12 @@ class _ComplaintRow extends ConsumerWidget {
               children: [
                 Text(complaint.title, style: AppTextStyles.rowTitle),
                 Text(
-                  '${complaint.category.label} · $ageVerb '
-                  '${RelativeTimeFormatter.ago(complaint.reportedAt)} · '
-                  'prefers ${complaint.timePreference.label}',
+                  l10n.tenantComplaintMeta(
+                    complaint.category.labelFor(l10n),
+                    ageVerb,
+                    RelativeTimeFormatter.agoFor(l10n, complaint.reportedAt),
+                    complaint.timePreference.labelFor(l10n),
+                  ),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: context.appColors.textMuted,
                   ),
@@ -198,7 +204,7 @@ class _ComplaintRow extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              StatusChip(label: eff.label, tone: eff.tone),
+              StatusChip(label: eff.labelFor(l10n), tone: eff.tone),
               if (subtext != null) ...[
                 const SizedBox(height: 4),
                 SizedBox(
@@ -218,7 +224,7 @@ class _ComplaintRow extends ConsumerWidget {
                 InkWell(
                   onTap: () => reopenComplaint(ref, complaint.id),
                   child: Text(
-                    'Not fixed yet?',
+                    l10n.tenantComplaintNotFixedYet,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,

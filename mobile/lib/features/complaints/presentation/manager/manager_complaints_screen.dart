@@ -7,6 +7,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/relative_time_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/empty_state.dart';
@@ -30,6 +31,7 @@ class ManagerComplaintsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final propertyId = ref.watch(managerSelectedPgIdProvider);
     final complaintsAsync = ref.watch(managerComplaintsProvider(propertyId));
 
@@ -52,7 +54,7 @@ class ManagerComplaintsScreen extends ConsumerWidget {
                   padding: EdgeInsets.zero,
                 ),
                 Text(
-                  'Complaints',
+                  l10n.complaintsTitle,
                   style: AppTextStyles.screenTitle.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -84,6 +86,7 @@ class _ManagerComplaintsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final open = complaints
         .where((c) => c.effectiveStatus != ComplaintStatus.resolved)
         .length;
@@ -103,7 +106,7 @@ class _ManagerComplaintsBody extends StatelessWidget {
             Expanded(
               child: StatCard(
                 icon: Icons.report_problem_outlined,
-                label: 'Open',
+                label: l10n.complaintsStatOpen,
                 value: '$open',
                 tone: SemanticTone.danger,
               ),
@@ -112,7 +115,7 @@ class _ManagerComplaintsBody extends StatelessWidget {
             Expanded(
               child: StatCard(
                 icon: Icons.priority_high,
-                label: 'High priority',
+                label: l10n.complaintsStatHighPriority,
                 value: '$highPriority',
                 tone: SemanticTone.warning,
               ),
@@ -121,10 +124,10 @@ class _ManagerComplaintsBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.space4),
         if (complaints.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.celebration_outlined,
-            title: 'No complaints for this PG',
-            message: 'Nothing open right now.',
+            title: l10n.managerComplaintsEmptyTitle,
+            message: l10n.complaintsNothingOpenMessage,
           )
         else
           for (final complaint in complaints)
@@ -144,19 +147,21 @@ class _ComplaintCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final eff = complaint.effectiveStatus;
     final isHighPriority =
         complaint.severity == ComplaintSeverity.high &&
         eff != ComplaintStatus.resolved;
     final subtext = switch (eff) {
-      ComplaintStatus.delegated =>
-        '→ ${complaint.delegatedTo} · auto-resolves in '
-            '${complaint.autoResolveDaysLeft}d',
+      ComplaintStatus.delegated => l10n.complaintDelegatedArrowSub(
+        complaint.delegatedTo ?? '',
+        complaint.autoResolveDaysLeft,
+      ),
       ComplaintStatus.resolved when complaint.status == ComplaintStatus.delegated =>
-        'Auto-resolved — no complaint from tenant',
-      ComplaintStatus.resolved => 'Marked resolved by you',
-      ComplaintStatus.reopened => "Tenant says it's still not fixed",
+        l10n.complaintAutoResolvedNoComplaint,
+      ComplaintStatus.resolved => l10n.complaintMarkedResolvedByYou,
+      ComplaintStatus.reopened => l10n.complaintTenantSaysNotFixed,
       _ => null,
     };
 
@@ -229,8 +234,11 @@ class _ComplaintCard extends StatelessWidget {
                 children: [
                   Text(complaint.title, style: AppTextStyles.rowTitle),
                   Text(
-                    '${complaint.room} · ${complaint.tenantName} · '
-                    '${RelativeTimeFormatter.open(complaint.reportedAt)}',
+                    l10n.complaintRoomTenantOpen(
+                      complaint.room,
+                      complaint.tenantName,
+                      RelativeTimeFormatter.openFor(l10n, complaint.reportedAt),
+                    ),
                     style: AppTextStyles.bodySmall.copyWith(
                       color: context.appColors.textMuted,
                     ),
@@ -250,7 +258,7 @@ class _ComplaintCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.space2),
-            StatusChip(label: eff.label, tone: eff.tone),
+            StatusChip(label: eff.labelFor(l10n), tone: eff.tone),
           ],
         ),
       ),

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_scaffold.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -68,7 +69,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
   Future<void> _verify() async {
     if (_controller.text.length != 6) {
-      setState(() => _errorText = 'Enter the 6-digit code');
+      setState(() => _errorText = AppLocalizations.of(context).otpEnterCode);
       return;
     }
     setState(() {
@@ -89,6 +90,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppScaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.space4),
@@ -104,19 +106,19 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
             ),
             const SizedBox(height: AppSpacing.space2),
             Text(
-              'Enter the code',
+              l10n.otpTitle,
               style: AppTextStyles.sectionHeading.copyWith(fontSize: 24),
             ),
             const SizedBox(height: AppSpacing.space2),
             Text(
-              'We sent a 6-digit code to +91 ${widget.phoneNumber}',
+              l10n.otpSentTo(widget.phoneNumber),
               style: AppTextStyles.body.copyWith(
                 color: context.appColors.textMuted,
               ),
             ),
             const SizedBox(height: AppSpacing.space6),
             AppTextField(
-              label: 'OTP',
+              label: l10n.otpLabel,
               controller: _controller,
               keyboardType: TextInputType.number,
               maxLength: 6,
@@ -129,7 +131,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
             ),
             const SizedBox(height: AppSpacing.space4),
             PrimaryButton(
-              label: 'Verify & continue',
+              label: l10n.otpVerify,
               isLoading: _isVerifying,
               onPressed: _verify,
             ),
@@ -137,14 +139,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
             Center(
               child: _secondsRemaining > 0
                   ? Text(
-                      'Resend code in ${_secondsRemaining}s',
+                      l10n.otpResendIn(_secondsRemaining),
                       style: AppTextStyles.bodySmall.copyWith(
                         color: context.appColors.textMuted,
                       ),
                     )
                   : TextButton(
                       onPressed: _resend,
-                      child: const Text('Resend code'),
+                      child: Text(l10n.otpResend),
                     ),
             ),
           ],

@@ -2,17 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/result.dart';
+import '../../../core/supabase/supabase_providers.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/user_role.dart';
-import '../data/mock_tenants_repository.dart';
+import '../data/supabase_tenants_repository.dart';
 import '../data/tenants_repository.dart';
 import '../domain/tenant_record.dart';
 import '../domain/tenant_status.dart';
 
-/// The single override point for swapping the tenants data source: point
-/// this at a Supabase-backed implementation in Phase 6.
+/// The single override point for swapping the tenants data source — was
+/// `MockTenantsRepository()` through Phase 1; now backed by real Supabase
+/// tenancy rows and RPCs.
 final tenantsRepositoryProvider = Provider<TenantsRepository>(
-  (ref) => MockTenantsRepository(),
+  (ref) => SupabaseTenantsRepository(ref.watch(supabaseClientProvider)),
 );
 
 /// Digits only, last 10 — so "+91 98222 33445" (how the roster stores a
@@ -147,6 +149,63 @@ Future<AppFailure?> moveOutTenant(
   final result = await ref
       .read(tenantsRepositoryProvider)
       .moveOutTenant(tenantId);
+  return result.when(
+    ok: (_) {
+      _invalidateTenantLists(ref, propertyId);
+      return null;
+    },
+    err: (failure) => failure,
+  );
+}
+
+Future<AppFailure?> requestMoveOut(
+  WidgetRef ref,
+  String tenantId, {
+  required String propertyId,
+  required DateTime moveOutDate,
+  bool acknowledgeForfeiture = false,
+}) async {
+  final result = await ref
+      .read(tenantsRepositoryProvider)
+      .requestMoveOut(
+        tenantId,
+        moveOutDate: moveOutDate,
+        acknowledgeForfeiture: acknowledgeForfeiture,
+      );
+  return result.when(
+    ok: (_) {
+      _invalidateTenantLists(ref, propertyId);
+      return null;
+    },
+    err: (failure) => failure,
+  );
+}
+
+Future<AppFailure?> cancelMoveOutNotice(
+  WidgetRef ref,
+  String tenantId, {
+  required String propertyId,
+}) async {
+  final result = await ref
+      .read(tenantsRepositoryProvider)
+      .cancelMoveOutNotice(tenantId);
+  return result.when(
+    ok: (_) {
+      _invalidateTenantLists(ref, propertyId);
+      return null;
+    },
+    err: (failure) => failure,
+  );
+}
+
+Future<AppFailure?> markDepositReturned(
+  WidgetRef ref,
+  String tenantId, {
+  required String propertyId,
+}) async {
+  final result = await ref
+      .read(tenantsRepositoryProvider)
+      .markDepositReturned(tenantId);
   return result.when(
     ok: (_) {
       _invalidateTenantLists(ref, propertyId);

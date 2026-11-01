@@ -2,8 +2,24 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
+import '../../../../../core/utils/currency_formatter.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../shared/widgets/semantic_tone.dart';
 import '../../../domain/owner_dashboard_data.dart';
+
+String _textFor(AppLocalizations l10n, AttentionItem item) => switch (item) {
+  PendingRentAttention item => l10n.ownerAttentionPendingRent(
+    CurrencyFormatter.rupees(item.amount),
+    item.tenantCount,
+  ),
+  VacantBedsAttention item => l10n.ownerAttentionVacantBeds(
+    item.bedCount,
+    item.propertyNames.join(', '),
+  ),
+  StaleComplaintsAttention item => l10n.ownerAttentionStaleComplaints(
+    item.count,
+  ),
+};
 
 /// The "Needs your attention" warning card at the top of the Owner
 /// Dashboard, listing [items] with a dot marker and a "View" link each.
@@ -18,6 +34,7 @@ class AttentionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final tone = SemanticTone.warning;
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -32,7 +49,7 @@ class AttentionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'NEEDS YOUR ATTENTION',
+            l10n.ownerNeedsAttention,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: tone.foreground(context),
               fontWeight: FontWeight.w700,
@@ -56,7 +73,7 @@ class AttentionCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      item.text,
+                      _textFor(l10n, item),
                       style: Theme.of(context).textTheme.bodySmall
                           ?.copyWith(fontSize: 13),
                     ),
@@ -68,9 +85,9 @@ class AttentionCard extends StatelessWidget {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     onPressed: () => onView(item.destination),
-                    child: const Text(
-                      'View',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.commonView,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),

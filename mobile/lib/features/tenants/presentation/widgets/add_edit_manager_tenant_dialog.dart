@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/document_scan.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../application/tenants_providers.dart';
@@ -88,24 +89,25 @@ class _AddManagerTenantDialogState
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
     final room = _roomController.text.trim();
     final rent = int.tryParse(_rentController.text.trim());
     final phone = _phoneController.text.trim();
     final depositText = _depositController.text.trim();
     final deposit = depositText.isEmpty ? null : int.tryParse(depositText);
     if (room.isEmpty || rent == null || rent <= 0) {
-      setState(() => _errorText = 'Enter a room/bed and a valid rent amount');
+      setState(() => _errorText = l10n.tenantsErrorRoomBedAndRent);
       return;
     }
     if (!_isAssignMode && phone.isEmpty) {
       // Without a phone, this tenant can never sign in and see their own
       // rent/complaints — the app matches a signed-in session to its
       // tenancy by phone (see `currentTenantRecordProvider`).
-      setState(() => _errorText = "Enter the tenant's phone number");
+      setState(() => _errorText = l10n.tenantsErrorPhoneRequired);
       return;
     }
     if (depositText.isNotEmpty && (deposit == null || deposit < 0)) {
-      setState(() => _errorText = 'Enter a valid deposit amount, or leave it blank');
+      setState(() => _errorText = l10n.tenantsErrorDepositAmount);
       return;
     }
     setState(() {
@@ -149,8 +151,11 @@ class _AddManagerTenantDialogState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppDialog(
-      title: _isAssignMode ? 'Assign bed to tenant' : 'Add tenant',
+      title: _isAssignMode
+          ? l10n.tenantsAssignBedToTenantTitle
+          : l10n.tenantsAddTenant,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -166,7 +171,7 @@ class _AddManagerTenantDialogState
                   ),
                   const SizedBox(width: AppSpacing.space2),
                   Text(
-                    'Scan an ID or filled form instead',
+                    l10n.tenantsScanInstead,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -179,29 +184,29 @@ class _AddManagerTenantDialogState
             const SizedBox(height: AppSpacing.space3),
           ],
           AppTextField(
-            label: 'Full name',
+            label: l10n.tenantsFullNameLabel,
             controller: _nameController,
             errorText: _errorText,
           ),
           const SizedBox(height: AppSpacing.space3),
           if (!_isAssignMode) ...[
             AppTextField(
-              label: 'Phone',
+              label: l10n.commonPhone,
               controller: _phoneController,
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: AppSpacing.space3),
           ],
-          AppTextField(label: 'Room / Bed', controller: _roomController),
+          AppTextField(label: l10n.tenantsRoomBedLabel, controller: _roomController),
           const SizedBox(height: AppSpacing.space3),
           AppTextField(
-            label: 'Monthly rent',
+            label: l10n.tenantsMonthlyRentLabel,
             controller: _rentController,
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: AppSpacing.space3),
           AppTextField(
-            label: 'Security deposit (optional)',
+            label: l10n.tenantsSecurityDepositLabel,
             controller: _depositController,
             keyboardType: TextInputType.number,
           ),
@@ -210,10 +215,10 @@ class _AddManagerTenantDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         PrimaryButton(
-          label: 'Save',
+          label: l10n.commonSave,
           expand: false,
           isLoading: _isSaving,
           onPressed: _save,

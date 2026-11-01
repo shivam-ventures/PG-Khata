@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>PG Khata uses your camera to scan or photograph tenant ID documents and other paperwork when adding or verifying a tenant.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PG Khata lets you choose an existing photo from your library to attach as a tenant document.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

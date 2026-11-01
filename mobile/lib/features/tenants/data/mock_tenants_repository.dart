@@ -1,4 +1,6 @@
+import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/result.dart';
+import '../domain/deposit_settlement.dart';
 import '../domain/tenant_record.dart';
 import '../domain/tenant_status.dart';
 import 'tenants_repository.dart';
@@ -235,5 +237,92 @@ class MockTenantsRepository implements TenantsRepository {
     );
     _tenants[index] = updated;
     return Ok(updated);
+  }
+
+  @override
+  Future<Result<TenantRecord>> requestMoveOut(
+    String tenantId, {
+    required DateTime moveOutDate,
+    bool acknowledgeForfeiture = false,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    final index = _tenants.indexWhere((t) => t.id == tenantId);
+    final tenant = _tenants[index];
+    final noticeDays = moveOutDate.difference(DateTime.now()).inDays;
+    if (noticeDays < 15 && !acknowledgeForfeiture) {
+      return Err(ShortNoticeFailure(noticeDays, 15));
+    }
+    final updated = _withMoveOutFields(
+      tenant,
+      status: TenantStatus.noticePeriod,
+      moveOutDate: moveOutDate,
+      noticeGivenAt: DateTime.now(),
+      depositSettlement: tenant.depositAmount == null
+          ? null
+          : (noticeDays >= 15
+                ? DepositSettlement.pending
+                : DepositSettlement.forfeited),
+    );
+    _tenants[index] = updated;
+    return Ok(updated);
+  }
+
+  @override
+  Future<Result<TenantRecord>> cancelMoveOutNotice(String tenantId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    final index = _tenants.indexWhere((t) => t.id == tenantId);
+    final updated = _withMoveOutFields(
+      _tenants[index],
+      status: TenantStatus.active,
+      moveOutDate: null,
+      noticeGivenAt: null,
+      depositSettlement: null,
+    );
+    _tenants[index] = updated;
+    return Ok(updated);
+  }
+
+  @override
+  Future<Result<TenantRecord>> markDepositReturned(String tenantId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    final index = _tenants.indexWhere((t) => t.id == tenantId);
+    final tenant = _tenants[index];
+    final updated = _withMoveOutFields(
+      tenant,
+      status: tenant.status,
+      moveOutDate: tenant.moveOutDate,
+      noticeGivenAt: tenant.noticeGivenAt,
+      depositSettlement: DepositSettlement.returned,
+    );
+    _tenants[index] = updated;
+    return Ok(updated);
+  }
+
+  /// [TenantRecord.copyWith] deliberately can't null out or set
+  /// move-out/deposit fields (every other field it changes is "replace
+  /// with a new value", never "clear back to null") — this mock needs
+  /// both, so it builds a fresh record directly instead.
+  TenantRecord _withMoveOutFields(
+    TenantRecord tenant, {
+    required TenantStatus status,
+    required DateTime? moveOutDate,
+    required DateTime? noticeGivenAt,
+    required DepositSettlement? depositSettlement,
+  }) {
+    return TenantRecord(
+      id: tenant.id,
+      name: tenant.name,
+      phone: tenant.phone,
+      propertyId: tenant.propertyId,
+      propertyName: tenant.propertyName,
+      roomBed: tenant.roomBed,
+      rent: tenant.rent,
+      joinedDate: tenant.joinedDate,
+      status: status,
+      depositAmount: tenant.depositAmount,
+      moveOutDate: moveOutDate,
+      noticeGivenAt: noticeGivenAt,
+      depositSettlement: depositSettlement,
+    );
   }
 }

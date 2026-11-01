@@ -56,6 +56,18 @@ class RentPayment {
   /// of whether a cash payment is still awaiting the tenant's confirmation.
   final DateTime? paidDate;
 
+  /// What's still actually owed on this period — [expectedAmount] minus
+  /// whatever has been confirmed paid so far. Equal to [expectedAmount]
+  /// whenever nothing has been confirmed yet (pending/overdue/disputed —
+  /// [amount] mirrors [expectedAmount] in those states too, so this is a
+  /// no-op there), and to [expectedAmount] minus [amount] for a
+  /// [PaymentStatus.partial] period. This — not [expectedAmount] — is what
+  /// a "collect the rest" or "pay the rest" action should offer/charge:
+  /// the backend's `record_self_payment` (see migration 34) rejects a
+  /// self-payment that doesn't exactly match it.
+  int get outstandingAmount =>
+      status == PaymentStatus.partial ? expectedAmount - amount : expectedAmount;
+
   RentPayment copyWith({
     PaymentStatus? status,
     PaymentMethod? method,

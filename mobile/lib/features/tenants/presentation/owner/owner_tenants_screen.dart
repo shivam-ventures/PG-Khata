@@ -5,6 +5,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/date_label_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/async_value_view.dart';
 import '../../../../shared/widgets/cta_card.dart';
@@ -18,7 +20,7 @@ import '../../../properties/domain/property.dart';
 import '../../application/tenants_providers.dart';
 import '../../domain/tenant_record.dart';
 import '../widgets/add_edit_owner_tenant_dialog.dart';
-import '../widgets/move_out_dialog.dart';
+import '../widgets/tenant_actions_sheet.dart';
 
 /// The Owner's whole-portfolio tenant roster. Mirrors `Owner Tenants.dc.html`.
 /// Rendered inside [RoleShell]: page content only.
@@ -41,6 +43,7 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final propertiesAsync = ref.watch(propertiesProvider);
     final tenantsAsync = ref.watch(tenantsProvider(null));
     final pendingAsync = ref.watch(pendingTenantsProvider(null));
@@ -54,14 +57,14 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Tenants',
+                l10n.tenantsTitle,
                 style: AppTextStyles.screenTitle.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               tenantsAsync.when(
                 data: (tenants) => Text(
-                  '${tenants.length} across your portfolio',
+                  l10n.tenantsCountAcrossPortfolio(tenants.length),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: context.appColors.textMuted,
                   ),
@@ -119,6 +122,7 @@ class _TenantsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final query = searchController.text.trim().toLowerCase();
     final filtered = tenants.where((t) {
       final matchesProperty =
@@ -135,10 +139,10 @@ class _TenantsBody extends ConsumerWidget {
       children: [
         CtaCard(
           icon: Icons.person_add_alt,
-          title: 'Add tenant',
+          title: l10n.tenantsAddTenant,
           subtitle: properties.isEmpty
-              ? 'Add a PG first — a tenant needs one to belong to'
-              : 'Manually add someone with a known bed & rent',
+              ? l10n.tenantsAddNeedsPgFirst
+              : l10n.tenantsAddManuallySubtitle,
           onTap: properties.isEmpty
               ? null
               : () => showAddOwnerTenantDialog(context, properties: properties),
@@ -146,7 +150,7 @@ class _TenantsBody extends ConsumerWidget {
         if (pending.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.space4),
           Text(
-            'SELF-REGISTERED — NEEDS A BED',
+            l10n.tenantsSelfRegisteredHeader,
             style: AppTextStyles.kickerUppercase.copyWith(
               color: context.appColors.info,
             ),
@@ -167,7 +171,7 @@ class _TenantsBody extends ConsumerWidget {
         ],
         const SizedBox(height: AppSpacing.space4),
         AppTextField(
-          label: 'Search by name or phone',
+          label: l10n.tenantsSearchLabel,
           controller: searchController,
           onChanged: (_) => onSearchChanged(),
         ),
@@ -175,9 +179,9 @@ class _TenantsBody extends ConsumerWidget {
         DropdownButtonFormField<String>(
           isExpanded: true,
           initialValue: propertyFilter,
-          decoration: const InputDecoration(labelText: 'PG'),
+          decoration: InputDecoration(labelText: l10n.commonPg),
           items: [
-            const DropdownMenuItem(value: 'all', child: Text('All PGs')),
+            DropdownMenuItem(value: 'all', child: Text(l10n.commonAllPgs)),
             for (final property in properties)
               DropdownMenuItem(
                 value: property.name,
@@ -190,10 +194,10 @@ class _TenantsBody extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.space4),
         if (filtered.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.people_outline,
-            title: 'No tenants match',
-            message: 'Try a different search or filter.',
+            title: l10n.tenantsEmptyMatchTitle,
+            message: l10n.roomsEmptyMessage,
           )
         else
           for (final tenant in filtered)
@@ -204,19 +208,32 @@ class _TenantsBody extends ConsumerWidget {
                 subtitle:
                     '${tenant.propertyName} · ${tenant.roomBed} · '
                     '${CurrencyFormatter.rupees(tenant.rent)}'
-                    '${tenant.depositAmount == null ? '' : ' · ${CurrencyFormatter.rupees(tenant.depositAmount!)} deposit'}',
-                trailing: StatusChip(
-                  label: tenant.status.label,
-                  tone: tenant.status.tone,
+                    '${tenant.depositAmount == null ? '' : l10n.tenantsDepositSuffix(CurrencyFormatter.rupees(tenant.depositAmount!))}'
+                    '${tenant.moveOutDate == null ? '' : l10n.tenantsMovingOutSuffix(DateLabelFormatter.short(tenant.moveOutDate!))}',
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    StatusChip(
+                      label: tenant.status.labelFor(l10n),
+                      tone: tenant.status.tone,
+                    ),
+                    if (tenant.depositSettlement != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: StatusChip(
+                          label: tenant.depositSettlement!.labelFor(l10n),
+                          tone: tenant.depositSettlement!.tone,
+                        ),
+                      ),
+                  ],
                 ),
-                onOverflow: tenant.canMoveOut
-                    ? () => showMoveOutDialog(
-                        context,
-                        ref,
-                        tenantId: tenant.id,
-                        tenantName: tenant.name,
-                        propertyId: tenant.propertyId,
-                      )
+                onOverflow:
+                    (tenant.canGiveNotice ||
+                        tenant.canCancelNotice ||
+                        tenant.canMoveOut ||
+                        tenant.canMarkDepositReturned)
+                    ? () => showTenantActionsSheet(context, ref, tenant: tenant)
                     : null,
               ),
             ),
@@ -233,6 +250,7 @@ class _PendingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final tone = context.appColors.info100;
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -252,7 +270,10 @@ class _PendingCard extends StatelessWidget {
               children: [
                 Text(person.name, style: AppTextStyles.rowTitle),
                 Text(
-                  '${person.propertyName} · ${person.phone}',
+                  l10n.tenantsPendingPropertyPhone(
+                    person.propertyName,
+                    person.phone,
+                  ),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: context.appColors.textMuted,
                   ),
@@ -260,7 +281,7 @@ class _PendingCard extends StatelessWidget {
               ],
             ),
           ),
-          PrimaryButton(label: 'Assign', onPressed: onAssign, expand: false),
+          PrimaryButton(label: l10n.tenantsAssign, onPressed: onAssign, expand: false),
         ],
       ),
     );

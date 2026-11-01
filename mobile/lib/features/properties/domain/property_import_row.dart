@@ -1,5 +1,25 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../l10n/app_localizations.dart';
+
+/// Why a bulk-import CSV row failed validation.
+enum PropertyImportRowError {
+  missingName,
+  missingAddress,
+  invalidTotalBeds,
+  missingManagerName;
+
+  String labelFor(AppLocalizations l10n) => switch (this) {
+    PropertyImportRowError.missingName => l10n.propertyImportErrorMissingName,
+    PropertyImportRowError.missingAddress =>
+      l10n.propertyImportErrorMissingAddress,
+    PropertyImportRowError.invalidTotalBeds =>
+      l10n.propertyImportErrorInvalidTotalBeds,
+    PropertyImportRowError.missingManagerName =>
+      l10n.propertyImportErrorMissingManagerName,
+  };
+}
+
 /// One row parsed from a bulk-import CSV, validated against what
 /// [PropertiesController.addProperty] needs.
 @immutable
@@ -16,7 +36,7 @@ class ParsedPropertyRow {
   final String address;
   final int? totalBeds;
   final String managerName;
-  final String? error;
+  final PropertyImportRowError? error;
 
   bool get isValid => error == null;
 }
@@ -41,15 +61,15 @@ ParsedPropertyRow parsePropertyRow(Map<String, String> row) {
   final managerName = _field(row, ['manager name', 'manager']);
   final beds = int.tryParse(bedsText);
 
-  String? error;
+  PropertyImportRowError? error;
   if (name.isEmpty) {
-    error = 'Missing name';
+    error = PropertyImportRowError.missingName;
   } else if (address.isEmpty) {
-    error = 'Missing address';
+    error = PropertyImportRowError.missingAddress;
   } else if (beds == null || beds <= 0) {
-    error = 'Invalid total beds';
+    error = PropertyImportRowError.invalidTotalBeds;
   } else if (managerName.isEmpty) {
-    error = 'Missing manager name';
+    error = PropertyImportRowError.missingManagerName;
   }
 
   return ParsedPropertyRow(

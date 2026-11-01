@@ -1,10 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/utils/currency_formatter.dart';
-import '../../../core/utils/date_label_formatter.dart';
-import '../../../core/utils/relative_time_formatter.dart';
-import '../../../shared/widgets/semantic_tone.dart';
+import '../../announcements/application/announcements_providers.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../complaints/application/complaints_providers.dart';
 import '../../complaints/domain/complaint_status.dart';
@@ -32,7 +28,33 @@ final managerSelectedPgIdProvider =
 
 class ManagerSelectedPgIdNotifier extends Notifier<String> {
   @override
-  String build() => 'hsr';
+  String build() {
+    // Was hardcoded to the Phase-1 mock's 'hsr' — real property ids are
+    // UUIDs, so that default never matched anything once Properties/Rooms
+    // were wired to Supabase (every Manager screen silently showed empty).
+    // `propertiesProvider` is already RLS-scoped to exactly this Manager's
+    // assigned properties (the same query an Owner's portfolio view makes;
+    // RLS decides which rows come back), so snap to the first one once it
+    // loads, unless the current selection is still a real, valid choice
+    // (e.g. survives a re-login without resetting a Manager's last pick).
+    ref.listen(propertiesProvider, (previous, next) {
+      final properties = next.value;
+      if (properties == null || properties.isEmpty) return;
+      final currentIsValid = properties.any((p) => p.id == state);
+      if (!currentIsValid) {
+        state = properties.first.id;
+      }
+    });
+    // ref.listen only fires on a FUTURE transition of propertiesProvider —
+    // if it's already resolved by the time this notifier first builds
+    // (e.g. some other screen already triggered the fetch), that initial
+    // value would otherwise never be picked up.
+    final alreadyLoaded = ref.read(propertiesProvider).value;
+    if (alreadyLoaded != null && alreadyLoaded.isNotEmpty) {
+      return alreadyLoaded.first.id;
+    }
+    return '';
+  }
 
   void select(String pgId) => state = pgId;
 }
@@ -63,7 +85,12 @@ final ownerDashboardProvider = FutureProvider<OwnerDashboardData>((ref) async {
       metrics[propertyId] ?? PropertyMetrics.zero;
 
   final pendingPayments = payments.where((p) => p.status.isCollectable).toList();
-  final pendingTotal = pendingPayments.fold<int>(0, (sum, p) => sum + p.amount);
+  // outstandingAmount, not amount — a `partial` period's `amount` is what
+  // was already paid, not what's still owed. See RentPayment.outstandingAmount.
+  final pendingTotal = pendingPayments.fold<int>(
+    0,
+    (sum, p) => sum + p.outstandingAmount,
+  );
   final vacantBeds = properties.fold<int>(
     0,
     (sum, p) {
@@ -80,29 +107,20 @@ final ownerDashboardProvider = FutureProvider<OwnerDashboardData>((ref) async {
 
   final attentionItems = [
     if (pendingPayments.isNotEmpty)
-      AttentionItem(
-        text:
-            '${CurrencyFormatter.rupees(pendingTotal)} rent pending across '
-            '${pendingPayments.length} tenant${pendingPayments.length == 1 ? '' : 's'}',
-        destination: 'payments',
+      PendingRentAttention(
+        amount: pendingTotal,
+        tenantCount: pendingPayments.length,
       ),
     if (vacantBeds > 0)
-      AttentionItem(
-        text:
-            '$vacantBeds vacant bed${vacantBeds == 1 ? '' : 's'} — '
-            '${properties.where((p) {
-              final m = metricsFor(p.id);
-              return m.occupiedBeds < m.totalBeds;
-            }).map((p) => p.name).join(', ')}',
-        destination: 'rooms',
+      VacantBedsAttention(
+        bedCount: vacantBeds,
+        propertyNames: [
+          for (final p in properties)
+            if (metricsFor(p.id).occupiedBeds < metricsFor(p.id).totalBeds)
+              p.name,
+        ],
       ),
-    if (staleComplaints > 0)
-      AttentionItem(
-        text:
-            '$staleComplaints complaint${staleComplaints == 1 ? '' : 's'} open '
-            'for more than 48 hours',
-        destination: 'complaints',
-      ),
+    if (staleComplaints > 0) StaleComplaintsAttention(count: staleComplaints),
   ];
 
   final totalBeds = properties.fold<int>(0, (sum, p) => sum + metricsFor(p.id).totalBeds);
@@ -118,51 +136,22 @@ final ownerDashboardProvider = FutureProvider<OwnerDashboardData>((ref) async {
     0,
     (sum, p) => sum + metricsFor(p.id).rentExpected,
   );
-  final occupancyPct = totalBeds == 0 ? 0 : (occupiedBeds / totalBeds * 100).round();
-
   final stats = [
-    DashboardStat(
-      icon: Icons.home_outlined,
-      label: 'Occupancy',
-      value: '$occupancyPct%',
-      sub: '$occupiedBeds / $totalBeds beds',
-      tone: SemanticTone.accent,
-    ),
-    DashboardStat(
-      icon: Icons.currency_rupee,
-      label: 'Rent collected',
-      value: CurrencyFormatter.rupees(rentCollected),
-      sub: 'of ${CurrencyFormatter.rupees(rentExpected)} expected',
-      tone: SemanticTone.success,
-    ),
-    DashboardStat(
-      icon: Icons.hourglass_bottom,
-      label: 'Pending rent',
-      value: CurrencyFormatter.rupees(pendingTotal),
-      sub: '${pendingPayments.length} tenant${pendingPayments.length == 1 ? '' : 's'}',
-      tone: SemanticTone.warning,
-    ),
-    DashboardStat(
-      icon: Icons.warning_amber_rounded,
-      label: 'Open complaints',
-      value: '${openComplaints.length}',
-      sub: '$staleComplaints overdue',
-      tone: SemanticTone.danger,
-    ),
+    OccupancyStat(occupiedBeds: occupiedBeds, totalBeds: totalBeds),
+    RentCollectedStat(collected: rentCollected, expected: rentExpected),
+    PendingRentStat(amount: pendingTotal, tenantCount: pendingPayments.length),
+    OpenComplaintsStat(count: openComplaints.length, staleCount: staleComplaints),
   ];
 
   PropertyOverview overviewFor(Property property) {
     final m = metricsFor(property.id);
     return PropertyOverview(
       name: property.name,
-      occupancyLabel: '${m.occupiedBeds}/${m.totalBeds}',
-      rentLabel:
-          '${CurrencyFormatter.rupees(m.rentCollected)} / '
-          '${CurrencyFormatter.rupees(m.rentExpected)}',
-      complaintsLabel: '${m.openComplaints} open',
-      complaintsTone: m.openComplaints > 0
-          ? SemanticTone.warning
-          : SemanticTone.success,
+      occupiedBeds: m.occupiedBeds,
+      totalBeds: m.totalBeds,
+      rentCollected: m.rentCollected,
+      rentExpected: m.rentExpected,
+      openComplaints: m.openComplaints,
       managerName: property.managerName,
     );
   }
@@ -170,7 +159,7 @@ final ownerDashboardProvider = FutureProvider<OwnerDashboardData>((ref) async {
   final propertyOverviews = [for (final property in properties) overviewFor(property)];
 
   return OwnerDashboardData(
-    ownerFirstName: user != null ? _firstName(user.name) : 'Owner',
+    ownerFirstName: user != null ? _firstName(user.name) : '',
     attentionItems: attentionItems,
     stats: stats,
     properties: propertyOverviews,
@@ -204,22 +193,26 @@ final managerTodayProvider = FutureProvider<ManagerTodayData>((ref) async {
   );
 
   final collectable = payments.where((p) => p.status.isCollectable).toList();
-  final pendingTotal = collectable.fold<int>(0, (sum, p) => sum + p.amount);
+  final pendingTotal = collectable.fold<int>(
+    0,
+    (sum, p) => sum + p.outstandingAmount,
+  );
   final openComplaints = complaints
       .where((c) => c.effectiveStatus != ComplaintStatus.resolved)
       .toList();
 
   return ManagerTodayData(
-    managerFirstName: user != null ? _firstName(user.name) : 'Manager',
-    occupancyLabel: '$occupiedBeds/$totalBeds',
-    pendingLabel: CurrencyFormatter.rupees(pendingTotal),
-    complaintsCountLabel: '${openComplaints.length} open',
+    managerFirstName: user != null ? _firstName(user.name) : '',
+    occupiedBeds: occupiedBeds,
+    totalBeds: totalBeds,
+    pendingAmount: pendingTotal,
+    openComplaintsCount: openComplaints.length,
     rentTasks: [
       for (final payment in collectable)
         RentTask(
           tenantName: payment.tenantName,
           room: payment.room,
-          amountLabel: CurrencyFormatter.rupees(payment.amount),
+          amount: payment.outstandingAmount,
         ),
     ],
     complaintTasks: [
@@ -227,9 +220,8 @@ final managerTodayProvider = FutureProvider<ManagerTodayData>((ref) async {
         ComplaintTask(
           title: complaint.title,
           room: complaint.room,
-          age: RelativeTimeFormatter.open(complaint.reportedAt),
-          status: complaint.effectiveStatus.label,
-          tone: complaint.effectiveStatus.tone,
+          reportedAt: complaint.reportedAt,
+          status: complaint.effectiveStatus,
         ),
     ],
   );
@@ -249,6 +241,9 @@ final tenantHomeProvider = FutureProvider<TenantHomeData?>((ref) async {
 
   final historyFuture = ref.watch(paymentHistoryProvider(tenant.id).future);
   final complaintsFuture = ref.watch(tenantComplaintsProvider(tenant.id).future);
+  final announcementFuture = ref.watch(
+    currentAnnouncementProvider(tenant.propertyId).future,
+  );
 
   final properties = await propertiesFuture;
   Property? property;
@@ -261,38 +256,22 @@ final tenantHomeProvider = FutureProvider<TenantHomeData?>((ref) async {
 
   final history = await historyFuture;
   final complaints = await complaintsFuture;
+  final announcement = await announcementFuture;
 
   final RentPayment? current = history.isEmpty ? null : history.first;
+  // A `partial` period still has a real balance the tenant owes — nudge
+  // them the same way pending/overdue does, not just once it's 100% unpaid.
   final isRentDueSoon =
       current != null &&
       (current.status == PaymentStatus.pending ||
-          current.status == PaymentStatus.overdue);
+          current.status == PaymentStatus.overdue ||
+          current.status == PaymentStatus.partial);
   final isOverdue = current?.status == PaymentStatus.overdue;
 
   final awaitingConfirmation = history
       .where((p) => p.status == PaymentStatus.awaitingConfirmation)
       .toList();
   final hasPendingCashConfirmation = awaitingConfirmation.isNotEmpty;
-
-  String dueLabel = '';
-  String nextDueDateLabel = '';
-  if (current != null) {
-    if (isRentDueSoon) {
-      final days = current.dueDate.difference(DateTime.now()).inDays;
-      dueLabel = isOverdue
-          ? 'Rent overdue'
-          : days <= 0
-          ? 'Rent due today'
-          : 'Rent due in $days day${days == 1 ? '' : 's'}';
-    } else {
-      final next = DateTime(
-        current.dueDate.year,
-        current.dueDate.month + 1,
-        current.dueDate.day,
-      );
-      nextDueDateLabel = DateLabelFormatter.short(next);
-    }
-  }
 
   final openComplaint = complaints
       .where((c) => c.effectiveStatus != ComplaintStatus.resolved)
@@ -303,32 +282,33 @@ final tenantHomeProvider = FutureProvider<TenantHomeData?>((ref) async {
     pgName: property?.name ?? tenant.propertyName,
     pgAddress: property?.address ?? '',
     room: tenant.roomBed,
-    managerName: property?.managerName ?? 'Your manager',
-    rentAmountLabel: CurrencyFormatter.rupees(current?.expectedAmount ?? tenant.rent),
-    dueLabel: dueLabel,
-    nextDueDateLabel: nextDueDateLabel,
+    managerName: property?.managerName ?? '',
+    // outstandingAmount so a partially-paid current period shows the real
+    // remaining balance here, not the full rent again.
+    rentAmount: current?.outstandingAmount ?? tenant.rent,
+    currentDueDate: current?.dueDate,
     isRentDueSoon: isRentDueSoon,
     isOverdue: isOverdue,
     hasPendingCashConfirmation: hasPendingCashConfirmation,
-    pendingCashAmountLabel: hasPendingCashConfirmation
-        ? CurrencyFormatter.rupees(awaitingConfirmation.first.amount)
+    pendingCashAmount: hasPendingCashConfirmation
+        ? awaitingConfirmation.first.amount
         : null,
     recentPayments: [
       for (final payment in history.where((p) => p.status == PaymentStatus.paid).take(3))
         PaymentSummary(
-          periodLabel: DateLabelFormatter.monthYear(payment.periodMonth),
-          method: payment.method?.label ?? '—',
-          date: DateLabelFormatter.short(payment.paidDate!),
-          status: PaymentStatus.paid.label,
-          tone: PaymentStatus.paid.tone,
+          periodMonth: payment.periodMonth,
+          method: payment.method,
+          paidDate: payment.paidDate!,
+          status: PaymentStatus.paid,
         ),
     ],
     openComplaintTitle: openComplaint.isEmpty ? null : openComplaint.first.title,
-    openComplaintAge: openComplaint.isEmpty
+    openComplaintReportedAt: openComplaint.isEmpty
         ? null
-        : 'Reported ${RelativeTimeFormatter.ago(openComplaint.first.reportedAt)}',
+        : openComplaint.first.reportedAt,
     openComplaintStatus: openComplaint.isEmpty
         ? null
-        : openComplaint.first.effectiveStatus.label,
+        : openComplaint.first.effectiveStatus,
+    announcement: announcement?.body,
   );
 });

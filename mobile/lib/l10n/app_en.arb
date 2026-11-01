@@ -1,0 +1,1187 @@
+{
+  "@@locale": "en",
+  "appName": "PG Khata",
+  "@appName": {
+    "description": "The app's name, shown on the login screen."
+  },
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonPost": "Post",
+  "commonContinue": "Continue",
+  "commonClose": "Close",
+  "commonConfirm": "Confirm",
+  "commonLogOut": "Log out",
+  "commonRetry": "Retry",
+  "commonYes": "Yes",
+  "commonNo": "No",
+  "loginTitle": "Enter your mobile number and we'll send you a one-time code.",
+  "loginPhoneLabel": "Mobile number",
+  "loginSendOtp": "Send OTP",
+  "loginNoInvite": "Don't have an invite? Register as a tenant",
+  "loginDemoAccounts": "Demo accounts (OTP is always 123456):\n9876543210 — Owner · 9876500000 — Manager · 9822233445 — Tenant (Rahul Sharma, HSR PG)\nAny other number needs an invite link or the tenant registration above — signing in alone doesn't create an account.",
+  "loginInvalidPhone": "Enter a valid 10-digit mobile number",
+  "otpTitle": "Enter the code",
+  "otpSentTo": "We sent a 6-digit code to +91 {phone}",
+  "@otpSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "otpLabel": "OTP",
+  "otpVerify": "Verify & continue",
+  "otpResendIn": "Resend code in {seconds}s",
+  "@otpResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "otpResend": "Resend code",
+  "otpEnterCode": "Enter the 6-digit code",
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsLanguageEnglish": "English",
+  "settingsLanguageTelugu": "తెలుగు",
+  "@settingsLanguageEnglish": {
+    "description": "Always shown as-is, in every locale, so a language picker stays legible to someone who can't yet read the current UI language."
+  },
+  "@settingsLanguageTelugu": {
+    "description": "Always shown as-is, in every locale — see settingsLanguageEnglish."
+  },
+  "settingsRentReminders": "Rent reminders",
+  "settingsAlwaysOn": "Always on",
+  "settingsComplaintUpdates": "Complaint updates",
+  "settingsAnnouncements": "PG announcements",
+  "accountTitle": "Account",
+  "accountNotifications": "Notifications",
+  "roleOwner": "Owner",
+  "roleManager": "Manager",
+  "roleTenant": "Tenant",
+  "commonSeeAll": "See all",
+  "commonViewAll": "View all",
+  "commonView": "View",
+  "greetingMorning": "Good morning, {name}",
+  "@greetingMorning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingAfternoon": "Good afternoon, {name}",
+  "@greetingAfternoon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingEvening": "Good evening, {name}",
+  "@greetingEvening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "relativeJustNow": "just now",
+  "relativeYesterday": "yesterday",
+  "relativeMinutesAgo": "{count, plural, one{1 minute ago} other{{count} minutes ago}}",
+  "@relativeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeHoursAgo": "{count, plural, one{1 hour ago} other{{count} hours ago}}",
+  "@relativeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeDaysAgo": "{count, plural, one{1 day ago} other{{count} days ago}}",
+  "@relativeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeMinutesOpen": "{count, plural, one{1 minute open} other{{count} minutes open}}",
+  "@relativeMinutesOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeHoursOpen": "{count, plural, one{1 hour open} other{{count} hours open}}",
+  "@relativeHoursOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeDaysOpen": "{count, plural, one{1 day open} other{{count} days open}}",
+  "@relativeDaysOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "complaintStatusReported": "Reported",
+  "complaintStatusDelegated": "Delegated",
+  "complaintStatusResolved": "Resolved",
+  "complaintStatusReopened": "Reopened",
+  "paymentStatusPending": "Pending",
+  "paymentStatusOverdue": "Overdue",
+  "paymentStatusAwaitingConfirmation": "Awaiting confirmation",
+  "paymentStatusPaid": "Paid",
+  "paymentStatusPartial": "Partially paid",
+  "paymentStatusDisputed": "Disputed",
+  "paymentMethodCash": "Cash",
+  "paymentMethodUpi": "UPI",
+  "paymentMethodCard": "Card",
+  "paymentMethodBankTransfer": "Bank Transfer",
+  "tenantHello": "Hello, {name} 👋",
+  "@tenantHello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantConfirmCashTitle": "Confirm your cash payment",
+  "tenantConfirmCashMessage": "Manager recorded {amount} cash — tap to confirm or dispute.",
+  "@tenantConfirmCashMessage": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantAnnouncementTitle": "Announcement",
+  "tenantReportIssue": "Report Issue",
+  "tenantRentHistory": "Rent History",
+  "tenantMyPg": "My PG",
+  "tenantLastPayment": "Last payment",
+  "tenantComplaintStatus": "Complaint status",
+  "tenantNoRoomTitle": "No room assigned yet",
+  "tenantNoRoomMessage": "Once a manager assigns you a bed, your home screen will show your rent, PG details and complaint status here.",
+  "tenantPgAddress": "Address: {address}",
+  "@tenantPgAddress": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantPgManager": "Manager: {name}",
+  "@tenantPgManager": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantCallManager": "Call manager",
+  "tenantMessageManager": "Message",
+  "tenantRoomAndDue": "ROOM {room} · {due}",
+  "@tenantRoomAndDue": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "due": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantRentOverdue": "Rent overdue",
+  "tenantRentDueToday": "Rent due today",
+  "tenantRentDueInDays": "{days, plural, one{Rent due in 1 day} other{Rent due in {days} days}}",
+  "@tenantRentDueInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "tenantPayRent": "Pay Rent",
+  "tenantAllPaidUp": "You're all paid up",
+  "tenantNextRentDue": "Room {room} · Next rent of {amount} due {date}",
+  "@tenantNextRentDue": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantReportedTime": "Reported {time}",
+  "@tenantReportedTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantYourManagerFallback": "Your manager",
+  "ownerFallbackName": "Owner",
+  "managerFallbackName": "Manager",
+  "ownerAttentionPendingRent": "{amount} rent pending across {count, plural, one{1 tenant} other{{count} tenants}}",
+  "@ownerAttentionPendingRent": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ownerAttentionVacantBeds": "{count, plural, one{1 vacant bed} other{{count} vacant beds}} — {properties}",
+  "@ownerAttentionVacantBeds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "properties": {
+        "type": "String"
+      }
+    }
+  },
+  "ownerAttentionStaleComplaints": "{count, plural, one{1 complaint} other{{count} complaints}} open for more than 48 hours",
+  "@ownerAttentionStaleComplaints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ownerNeedsAttention": "NEEDS YOUR ATTENTION",
+  "ownerNoPgsTitle": "No PGs yet",
+  "ownerNoPgsMessage": "Let's set up your first PG — add rooms and beds, then invite a manager or tenants.",
+  "ownerAddPg": "Add PG",
+  "ownerImportFromExcel": "Import from Excel",
+  "ownerPayments": "Payments",
+  "ownerComplaintsAction": "Complaints",
+  "ownerReports": "Reports",
+  "ownerPgsAction": "PGs",
+  "ownerPgsSection": "PGs",
+  "statOccupancy": "Occupancy",
+  "statOccupancySub": "{occupied} / {total} beds",
+  "@statOccupancySub": {
+    "placeholders": {
+      "occupied": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "statRentCollected": "Rent collected",
+  "statRentCollectedSub": "of {expected} expected",
+  "@statRentCollectedSub": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      }
+    }
+  },
+  "statPendingRent": "Pending rent",
+  "statPendingRentSub": "{count, plural, one{1 tenant} other{{count} tenants}}",
+  "@statPendingRentSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statOpenComplaints": "Open complaints",
+  "statOpenComplaintsSub": "{count} overdue",
+  "@statOpenComplaintsSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "propertyOccupancy": "Occupancy: {occupancy}",
+  "@propertyOccupancy": {
+    "placeholders": {
+      "occupancy": {
+        "type": "String"
+      }
+    }
+  },
+  "propertyManager": "Manager: {name}",
+  "@propertyManager": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "propertyComplaintsOpen": "{count} open",
+  "@propertyComplaintsOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "managerOccupancy": "Occupancy",
+  "managerPendingToday": "Pending today",
+  "managerComplaints": "Complaints",
+  "managerCollectRent": "Collect Rent",
+  "managerAddTenant": "Add Tenant",
+  "managerViewRooms": "View Rooms",
+  "managerRentToCollect": "Rent to collect",
+  "managerOpenComplaints": "Open complaints",
+  "managerCollect": "Collect",
+  "managerAllCaughtUpTitle": "All caught up for today.",
+  "managerAllCaughtUpMessage": "No rent to collect and no open complaints here.",
+  "navOwnerOverview": "Overview",
+  "navOwnerPgs": "PGs",
+  "navOwnerTenants": "Tenants",
+  "navManagerToday": "Today",
+  "navManagerPayments": "Payments",
+  "navManagerRooms": "Rooms",
+  "navTenantHome": "Home",
+  "navTenantRent": "Rent",
+  "navTenantComplaints": "Complaints",
+  "navTenantProfile": "Profile",
+  "navMore": "More",
+  "ownerPaymentsSubtitle": "Rent ledger across your portfolio",
+  "paymentsRecordPaymentTitle": "Record payment",
+  "paymentsRecordPaymentSubtitle": "Log a cash, UPI or bank transfer",
+  "paymentsStatCollected": "Collected",
+  "paymentsStatCollectedSub": "this month",
+  "paymentsStatPending": "Pending",
+  "paymentsStatOverdue": "Overdue",
+  "paymentsStatCollectionRate": "Collection rate",
+  "paymentsStatCollectionRateSub": "of expected",
+  "paymentsStatNeedsReview": "Needs review",
+  "commonPg": "PG",
+  "commonAllPgs": "All PGs",
+  "commonStatus": "Status",
+  "paymentsFilterAllStatuses": "All statuses",
+  "paymentsEmptyTitle": "No payments match",
+  "paymentsEmptyMessage": "Try a different PG or status filter.",
+  "paymentsRowSubtitleDue": "{property} · {room} · due {date}",
+  "@paymentsRowSubtitleDue": {
+    "placeholders": {
+      "property": {
+        "type": "String"
+      },
+      "room": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "managerPaymentsEmptyTitle": "No tenants to collect from here yet",
+  "managerPaymentsEmptyMessage": "Rent rows show up once tenants are assigned a bed.",
+  "tenantPaymentsTitle": "Rent & Payments",
+  "tenantPaymentsNoRoomMessage": "Once a manager assigns you a bed, your rent and payment history will show up here.",
+  "tenantPaymentsEmptyTitle": "No rent record yet",
+  "tenantPaymentsEmptyMessage": "Your rent history will show up here once your first period is on record.",
+  "tenantPaymentHistorySection": "Payment history",
+  "paymentsHistoryRowPaid": "{method} · {date}",
+  "@paymentsHistoryRowPaid": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentsHistoryRowDue": "— · Due {date}",
+  "@paymentsHistoryRowDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantRentPaidFor": "Room {room} · Paid for {period}",
+  "@tenantRentPaidFor": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantRentRecorded": "Room {room} · {method} recorded {date}",
+  "@tenantRentRecorded": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantRentPartiallyPaidBalanceDue": "Room {room} · Balance due",
+  "@tenantRentPartiallyPaidBalanceDue": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantRentDueOn": "Room {room} · Due {date}",
+  "@tenantRentDueOn": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantDisputePayment": "I didn't pay this",
+  "tenantConfirmPayment": "Confirm",
+  "paymentMethodGeneric": "Payment",
+  "tenantPaymentRecordedByManager": "{method} recorded by manager",
+  "@tenantPaymentRecordedByManager": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantAmountOnDate": "{amount} on {date}",
+  "@tenantAmountOnDate": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantConfirmPaymentPrompt": "Did you pay this? Confirming helps keep your rent record accurate.",
+  "paymentsErrorInvalidAmount": "Enter a valid amount",
+  "paymentsMismatchTitle": "Double-check this amount",
+  "paymentsMismatchMessage": "{tenant}'s rent on record is {expected}, but you're about to record {amount}. Record this amount anyway?",
+  "@paymentsMismatchMessage": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "commonGoBack": "Go back",
+  "paymentsConfirmRecordAmount": "Yes, record {amount}",
+  "@paymentsConfirmRecordAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentsCollectRentTitle": "Collect rent — {tenant}",
+  "@paymentsCollectRentTitle": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      }
+    }
+  },
+  "commonAmount": "Amount",
+  "commonMethod": "Method",
+  "paymentsAwaitingConfirmationNoticeFor": "This is marked \"Awaiting confirmation\" until {tenant} confirms it on their end — staff-recorded payments always need that check, whatever the method.",
+  "@paymentsAwaitingConfirmationNoticeFor": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentsAwaitingConfirmationNoticeGeneric": "This is marked \"Awaiting confirmation\" until the tenant confirms it on their end — staff-recorded payments always need that check, whatever the method.",
+  "paymentsAllPaidUpTitle": "Everyone is paid up",
+  "paymentsAllPaidUpMessage": "There's no outstanding rent to record right now.",
+  "commonTenant": "Tenant",
+  "paymentsTenantOption": "{tenant} · {property} · {room}",
+  "@paymentsTenantOption": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      },
+      "property": {
+        "type": "String"
+      },
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentsErrorChooseTenantAndAmount": "Choose a tenant and a valid amount",
+  "commonDate": "Date",
+  "paymentsResolveDisputeTitle": "Resolve dispute",
+  "paymentsDisputeQuestion": "{tenant} disputed this {method} payment claim. Who was right?",
+  "@paymentsDisputeQuestion": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentsDisputeStaffRight": "Staff was right — mark it paid",
+  "paymentsDisputeTenantRight": "Tenant was right — void it",
+  "paymentsErrorChooseOutcome": "Choose an outcome",
+  "paymentsErrorNoteRequired": "A note explaining the resolution is required",
+  "paymentsNoteRequiredLabel": "Note (required)",
+  "paymentsResolve": "Resolve",
+  "tenantPaymentProcessingTitle": "Processing payment",
+  "tenantPaymentSuccessTitle": "Payment successful",
+  "tenantRoomAndPeriod": "Room {room} · {period}",
+  "@tenantRoomAndPeriod": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantChoosePaymentMethod": "How would you like to pay?",
+  "tenantPayViaUpi": "Pay via any UPI app",
+  "tenantPayViaCard": "Credit or debit card",
+  "tenantPayAmount": "Pay {amount}",
+  "@tenantPayAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantPaymentProcessingMessage": "Hang on, we're confirming your payment…",
+  "tenantPaymentSuccessAmount": "{amount} paid for {period}",
+  "@tenantPaymentSuccessAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantPaymentRecordUpdated": "Your rent record has been updated.",
+  "commonDone": "Done",
+  "paymentsUndoTitle": "Undo this payment?",
+  "paymentsUndoMessage": "This entry for {tenant} will be removed and the period will go back to needing collection. Use this if the amount, method or tenant was recorded by mistake.",
+  "@paymentsUndoMessage": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentsUndoButton": "Undo payment",
+  "complaintCategoryPlumbing": "Plumbing",
+  "complaintCategoryElectrical": "Electrical",
+  "complaintCategoryWifi": "Wifi/Internet",
+  "complaintCategoryCleaning": "Cleaning",
+  "complaintCategoryOther": "Other",
+  "complaintSeverityLow": "Low",
+  "complaintSeverityMedium": "Medium",
+  "complaintSeverityHigh": "High",
+  "timePreferenceAnytime": "Anytime",
+  "timePreferenceMorning": "Morning (8am–12pm)",
+  "timePreferenceAfternoon": "Afternoon (12–4pm)",
+  "timePreferenceEvening": "Evening (4–8pm)",
+  "complaintsTitle": "Complaints",
+  "tenantComplaintsNoRoomMessage": "Once a manager assigns you a bed, you'll be able to report issues here.",
+  "complaintsReportIssueTitle": "Report an issue",
+  "tenantComplaintsReportSubtitle": "Plumbing, electrical, wifi & more",
+  "tenantComplaintsEmptyTitle": "No complaints reported",
+  "tenantComplaintsEmptyMessage": "You're all clear.",
+  "tenantComplaintDelegatedSub": "Being handled by {assignee} · auto-closes in {days}d",
+  "@tenantComplaintDelegatedSub": {
+    "placeholders": {
+      "assignee": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "complaintsClosedAutomatically": "Closed automatically",
+  "tenantComplaintMeta": "{category} · {ageVerb} {ago} · prefers {timePreference}",
+  "@tenantComplaintMeta": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "ageVerb": {
+        "type": "String"
+      },
+      "ago": {
+        "type": "String"
+      },
+      "timePreference": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantComplaintNotFixedYet": "Not fixed yet?",
+  "complaintsStatOpen": "Open",
+  "complaintsStatHighPriority": "High priority",
+  "managerComplaintsEmptyTitle": "No complaints for this PG",
+  "complaintsNothingOpenMessage": "Nothing open right now.",
+  "complaintDelegatedArrowSub": "→ {assignee} · auto-resolves in {days}d",
+  "@complaintDelegatedArrowSub": {
+    "placeholders": {
+      "assignee": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "complaintAutoResolvedNoComplaint": "Auto-resolved — no complaint from tenant",
+  "complaintMarkedResolvedByYou": "Marked resolved by you",
+  "complaintTenantSaysNotFixed": "Tenant says it's still not fixed",
+  "complaintRoomTenantOpen": "{room} · {tenant} · {ago}",
+  "@complaintRoomTenantOpen": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "tenant": {
+        "type": "String"
+      },
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "ownerComplaintsEmptyTitle": "No complaints",
+  "complaintMarkedResolved": "Marked resolved",
+  "complaintPropertyRoomTenantOpen": "{property} · {room} · {tenant} · {ago}",
+  "@complaintPropertyRoomTenantOpen": {
+    "placeholders": {
+      "property": {
+        "type": "String"
+      },
+      "room": {
+        "type": "String"
+      },
+      "tenant": {
+        "type": "String"
+      },
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "complaintRoomTenantPrefers": "{room} · {tenant} · prefers {pref}",
+  "@complaintRoomTenantPrefers": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "tenant": {
+        "type": "String"
+      },
+      "pref": {
+        "type": "String"
+      }
+    }
+  },
+  "complaintsWhosHandlingThis": "Who's handling this?",
+  "commonNoteOptional": "Note (optional)",
+  "complaintsAutoCloseNotice": "Ticket auto-closes in 3 days unless the tenant says it's still not fixed — no need to come back and mark it done.",
+  "complaintDelegatedToAssignee": "Delegated to {assignee}",
+  "@complaintDelegatedToAssignee": {
+    "placeholders": {
+      "assignee": {
+        "type": "String"
+      }
+    }
+  },
+  "complaintClosedAutomaticallyDetail": "Closed automatically — tenant didn't report it again.",
+  "complaintMarkedResolvedByYouDetail": "Marked resolved by you.",
+  "complaintAutoResolvesInDetail": "Auto-resolves in {days}d unless the tenant says it's still not fixed.",
+  "@complaintAutoResolvesInDetail": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "complaintsDelegateAndDone": "Delegate & done",
+  "complaintsReassign": "Reassign",
+  "complaintsMarkResolvedNow": "Mark resolved now",
+  "complaintRoomAndProperty": "Room {room} · {property}",
+  "@complaintRoomAndProperty": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "property": {
+        "type": "String"
+      }
+    }
+  },
+  "complaintsCategoryLabel": "Category",
+  "complaintsSeverityQuestion": "How urgent is this?",
+  "complaintsWhatsWrongLabel": "What's wrong, and where?",
+  "complaintsPreferredTimeLabel": "Preferred time to fix",
+  "commonSubmit": "Submit",
+  "propertiesCountSummary": "{count} PGs · {beds} beds",
+  "@propertiesCountSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "beds": {
+        "type": "int"
+      }
+    }
+  },
+  "propertiesAddPgSubtitle": "Set up a new PG with rooms & beds",
+  "propertiesImportPgsTitle": "Import PGs",
+  "propertiesImportPgsSubtitle": "Bulk-add from a CSV file",
+  "ownerPropertiesEmptyMessage": "Add your first PG to get started.",
+  "commonRent": "Rent",
+  "propertiesManageRoomsAndBeds": "Manage rooms & beds",
+  "commonEdit": "Edit",
+  "propertiesErrorNameAndBeds": "Enter a name and a valid bed count",
+  "propertiesErrorNewManagerDetails": "Enter the new manager's name and phone",
+  "propertiesEditPgTitle": "Edit PG",
+  "propertiesPgNameLabel": "PG name",
+  "commonAddress": "Address",
+  "propertiesTotalBedsLabel": "Total beds",
+  "propertiesUnassigned": "Unassigned",
+  "propertiesInviteNewManager": "+ Invite a new manager",
+  "propertiesNewManagerNameLabel": "New manager's name",
+  "propertiesNewManagerPhoneLabel": "New manager's phone",
+  "propertiesImportNoRowsError": "That file didn't have any rows to import.",
+  "propertiesChooseCsvFile": "Choose CSV file",
+  "commonBack": "Back",
+  "propertiesImportCount": "Import {count} PGs",
+  "@propertiesImportCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "propertiesUploadCsvInstructions": "Upload a CSV file with one PG per row.",
+  "propertiesExpectedColumns": "Expected columns: Name, Address, Total Beds, Manager Name.",
+  "propertiesFoundRows": "Found {rows} rows — {valid} ready to import.",
+  "@propertiesFoundRows": {
+    "placeholders": {
+      "rows": {
+        "type": "int"
+      },
+      "valid": {
+        "type": "int"
+      }
+    }
+  },
+  "propertiesNoNamePlaceholder": "(no name)",
+  "propertiesRowSummary": "{address} · {beds} beds · {manager}",
+  "@propertiesRowSummary": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "beds": {
+        "type": "int"
+      },
+      "manager": {
+        "type": "String"
+      }
+    }
+  },
+  "propertiesImportedCount": "{count} PGs imported.",
+  "@propertiesImportedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "propertyImportErrorMissingName": "Missing name",
+  "propertyImportErrorMissingAddress": "Missing address",
+  "propertyImportErrorInvalidTotalBeds": "Invalid total beds",
+  "propertyImportErrorMissingManagerName": "Missing manager name",
+  "roomSharingSingle": "Single",
+  "roomSharingDouble": "Double sharing",
+  "roomSharingTriple": "Triple sharing",
+  "roomSharingFour": "Four sharing",
+  "roomsTitle": "Rooms",
+  "roomsSubtitle": "Rooms & beds",
+  "roomsAddRoom": "Add Room",
+  "roomsSearchLabel": "Search room or tenant",
+  "commonFilter": "Filter",
+  "roomsFilterAll": "All rooms",
+  "roomsFilterVacant": "Has vacant bed",
+  "roomsFilterOccupied": "Fully occupied",
+  "roomsMatchCount": "{matched} of {total} rooms",
+  "@roomsMatchCount": {
+    "placeholders": {
+      "matched": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "roomsEmptyTitle": "No rooms match",
+  "roomsEmptyMessage": "Try a different search or filter.",
+  "roomsAddTenantAction": "+ Add tenant",
+  "roomsAssignExisting": "Assign existing",
+  "roomsInviteViaLink": "Invite via link",
+  "roomNumberLabel": "Room {number}",
+  "@roomNumberLabel": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "bedLabel": "Bed {label}",
+  "@bedLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "roomsRentPerBed": "{rent} / bed",
+  "@roomsRentPerBed": {
+    "placeholders": {
+      "rent": {
+        "type": "String"
+      }
+    }
+  },
+  "roomsErrorNumberAndRent": "Enter a room number and a valid rent amount",
+  "roomsAddRoomDialogTitle": "Add room",
+  "roomsRoomNumberLabel": "Room number",
+  "roomsFloorLabel": "Floor",
+  "roomsSharingTypeLabel": "Sharing type",
+  "roomsRentPerBedLabel": "Rent per bed",
+  "roomsInviteTitle": "Invite tenant to Room {room}, Bed {bed}",
+  "@roomsInviteTitle": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      },
+      "bed": {
+        "type": "String"
+      }
+    }
+  },
+  "roomsInviteBody": "Send this link — opening it drops the tenant straight into signup, already linked to this bed. No code to type, no risk of joining the wrong PG.",
+  "commonTryAgain": "Try again",
+  "roomsCopyLink": "Copy link",
+  "roomsLinkCopied": "Link copied",
+  "tenantStatusActive": "Active",
+  "tenantStatusNoticePeriod": "Notice period",
+  "tenantStatusVacated": "Vacated",
+  "depositStatusPending": "Deposit pending",
+  "depositStatusForfeited": "Deposit forfeited",
+  "depositStatusReturned": "Deposit returned",
+  "tenantImportErrorMissingName": "Missing name",
+  "tenantImportErrorMissingRoomBed": "Missing room/bed",
+  "tenantImportErrorInvalidRent": "Invalid rent",
+  "tenantsTitle": "Tenants",
+  "tenantsCountAcrossPortfolio": "{count} across your portfolio",
+  "@tenantsCountAcrossPortfolio": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tenantsAddTenant": "Add tenant",
+  "tenantsAddNeedsPgFirst": "Add a PG first — a tenant needs one to belong to",
+  "tenantsAddManuallySubtitle": "Manually add someone with a known bed & rent",
+  "tenantsSelfRegisteredHeader": "SELF-REGISTERED — NEEDS A BED",
+  "tenantsSearchLabel": "Search by name or phone",
+  "tenantsEmptyMatchTitle": "No tenants match",
+  "tenantsDepositSuffix": " · {amount} deposit",
+  "@tenantsDepositSuffix": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsMovingOutSuffix": " · moving out {date}",
+  "@tenantsMovingOutSuffix": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsPendingPropertyPhone": "{property} · {phone}",
+  "@tenantsPendingPropertyPhone": {
+    "placeholders": {
+      "property": {
+        "type": "String"
+      },
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsAssign": "Assign",
+  "tenantsImportTitle": "Import tenants",
+  "managerTenantsEmptyTitle": "No tenants yet",
+  "managerTenantsEmptyMessage": "Add your first tenant above.",
+  "tenantsPendingPhoneSelfSignup": "{phone} · joined via self-signup",
+  "@tenantsPendingPhoneSelfSignup": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsAssignBed": "Assign bed",
+  "tenantsErrorRoomBedAndRent": "Enter a room/bed and a valid rent amount",
+  "tenantsErrorDepositAmount": "Enter a valid deposit amount, or leave it blank",
+  "tenantsAssignBedAndRentTitle": "Assign bed & rent",
+  "tenantsScanInstead": "Scan an ID or filled form instead",
+  "tenantsFullNameLabel": "Full name",
+  "commonPhone": "Phone",
+  "tenantsRoomBedHintLabel": "Room / Bed (e.g. 101 - B)",
+  "tenantsMonthlyRentLabel": "Monthly rent",
+  "tenantsSecurityDepositLabel": "Security deposit (optional)",
+  "tenantsJoiningDateLabel": "Joining date",
+  "tenantsErrorPhoneRequired": "Enter the tenant's phone number",
+  "tenantsAssignBedToTenantTitle": "Assign bed to tenant",
+  "tenantsRoomBedLabel": "Room / Bed",
+  "documentScanTakePhoto": "Take a photo",
+  "documentScanChooseFile": "Choose from gallery/files",
+  "documentScanReading": "Reading document…",
+  "tenantsGiveNoticeTitle": "Give notice — {tenant}",
+  "@tenantsGiveNoticeTitle": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsMoveOutDateLabel": "Move-out date",
+  "tenantsNoticeShort": "{days, plural, one{That's only 1 day's notice} other{That's only {days} days' notice}} — {minimum} are required.",
+  "@tenantsNoticeShort": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "minimum": {
+        "type": "int"
+      }
+    }
+  },
+  "tenantsNoticeMeets": "{days, plural, one{1 day's notice} other{{days} days' notice}} — meets the {minimum}-day policy.",
+  "@tenantsNoticeMeets": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "minimum": {
+        "type": "int"
+      }
+    }
+  },
+  "tenantsForfeitureError": "Confirm you understand the deposit will be forfeited",
+  "tenantsForfeitureAck": "I understand the security deposit will not be refunded because of short notice.",
+  "tenantsGiveNoticeButton": "Give notice",
+  "tenantsMoveOutTitle": "Mark as moved out?",
+  "tenantsMoveOutMessage": "{tenant}'s bed will be freed and their status set to Vacated. This can't be easily undone.",
+  "@tenantsMoveOutMessage": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsMoveOutButton": "Move out",
+  "tenantsCancelNotice": "Cancel notice",
+  "tenantsMoveOutEndNoticeEarly": "Move out now (end notice early)",
+  "tenantsMoveOutNoNotice": "Move out now (no notice)",
+  "tenantsMarkDepositReturned": "Mark deposit returned",
+  "tenantsMarkDepositReturnedTitle": "Mark deposit returned?",
+  "tenantsMarkDepositReturnedMessage": "Confirms you've already handed {tenant}'s security deposit back outside the app.",
+  "@tenantsMarkDepositReturnedMessage": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsImportCount": "Import {count} tenants",
+  "@tenantsImportCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tenantsUploadCsvInstructions": "Upload a CSV file with one tenant per row.",
+  "tenantsExpectedColumns": "Expected columns: Name, Phone, Room/Bed, Rent.",
+  "tenantsRowSummary": "{roomBed} · ₹{rent}",
+  "@tenantsRowSummary": {
+    "placeholders": {
+      "roomBed": {
+        "type": "String"
+      },
+      "rent": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsPhoneSuffix": " · {phone}",
+  "@tenantsPhoneSuffix": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "tenantsImportedCount": "{count} tenants imported.",
+  "@tenantsImportedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsSubtitle": "Portfolio performance, month to date",
+  "reportsStatTotalRevenue": "Total revenue",
+  "reportsStatTotalRevenueSub": "of {expected} expected",
+  "@reportsStatTotalRevenueSub": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsStatAvgOccupancy": "Avg occupancy",
+  "reportsStatAvgOccupancySub": "across {count} PGs",
+  "@reportsStatAvgOccupancySub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsStatAvgDaysLate": "Avg days late",
+  "reportsStatAvgDaysLateSub": "0 = paid on time",
+  "reportsStatComplaintResolution": "Complaint resolution",
+  "reportsStatComplaintResolutionSub": "of total complaints",
+  "reportsRevenueByPg": "Revenue by PG",
+  "reportsOccupancyTrend": "Occupancy trend (6 mo)",
+  "reportsPgComparison": "PG comparison",
+  "reportsEmptyMessage": "Revenue by PG shows up here once you add one.",
+  "reportsComparisonLine": "Occupancy {occupancy} · {complaints} complaints · {manager}",
+  "@reportsComparisonLine": {
+    "placeholders": {
+      "occupancy": {
+        "type": "String"
+      },
+      "complaints": {
+        "type": "int"
+      },
+      "manager": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsMarkAllRead": "Mark all read",
+  "commonRefresh": "Refresh",
+  "notificationsEmptyTitle": "No notifications yet",
+  "notificationsEmptyMessage": "You'll see updates about payments, complaints and tenancies here.",
+  "auditLogSystemActor": "System",
+  "auditLogTitle": "Audit log",
+  "auditLogSubtitle": "Every recorded payment, complaint and tenancy change",
+  "auditLogTypeLabel": "Type",
+  "auditLogFilterAll": "All activity",
+  "auditLogFilterTenancies": "Tenancies",
+  "auditLogEmptyTitle": "No activity yet",
+  "auditLogEmptyMessage": "Recorded changes will show up here.",
+  "announcementsTitle": "Announcements",
+  "ownerAnnouncementsEmptyTitle": "Add a PG first",
+  "ownerAnnouncementsEmptyMessage": "Announcements are posted to one PG at a time.",
+  "announcementsNewTitle": "New announcement",
+  "announcementsNewSubtitle": "Notifies every current tenant at {property}",
+  "@announcementsNewSubtitle": {
+    "placeholders": {
+      "property": {
+        "type": "String"
+      }
+    }
+  },
+  "announcementsEmptyTitle": "No announcements yet",
+  "announcementsEmptyMessage": "Post one to reach every current tenant here.",
+  "announcementsExpiredSuffix": " · expired",
+  "announcementsEndTooltip": "End announcement",
+  "announcementsEndTitle": "End this announcement?",
+  "announcementsEndMessage": "Tenants will no longer see it on their Home screen.",
+  "announcementsEndConfirm": "End it",
+  "managerAnnouncementsFallbackPg": "this PG",
+  "announcementsDialogTitle": "New announcement — {property}",
+  "@announcementsDialogTitle": {
+    "placeholders": {
+      "property": {
+        "type": "String"
+      }
+    }
+  },
+  "announcementsNotifyNotice": "Every current tenant at this PG is notified as soon as you post.",
+  "announcementsTitleFieldLabel": "Title (optional)",
+  "commonMessage": "Message",
+  "announcementsErrorEmptyBody": "Enter what you want tenants to know",
+  "commonMoreActions": "More actions"
+}

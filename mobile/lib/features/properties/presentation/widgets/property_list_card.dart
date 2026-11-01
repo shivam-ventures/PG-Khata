@@ -6,6 +6,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/semantic_tone.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../domain/property.dart';
@@ -35,6 +36,7 @@ class PropertyListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.space4),
@@ -71,7 +73,7 @@ class PropertyListCard extends StatelessWidget {
                 ),
               ),
               StatusChip(
-                label: '${metrics.openComplaints} open',
+                label: l10n.propertyComplaintsOpen(metrics.openComplaints),
                 tone: _complaintsTone,
               ),
             ],
@@ -81,7 +83,7 @@ class PropertyListCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Occupancy',
+                l10n.statOccupancy,
                 style: AppTextStyles.bodySmall.copyWith(
                   color: context.appColors.textSecondary,
                 ),
@@ -107,13 +109,13 @@ class PropertyListCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _Stat(
-                  label: 'Rent',
+                  label: l10n.commonRent,
                   value:
                       '${CurrencyFormatter.rupees(metrics.rentCollected)} / ${CurrencyFormatter.rupees(metrics.rentExpected)}',
                 ),
               ),
               Expanded(
-                child: _Stat(label: 'Manager', value: property.managerName),
+                child: _Stat(label: l10n.roleManager, value: property.managerName),
               ),
             ],
           ),
@@ -128,9 +130,9 @@ class PropertyListCard extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   minimumSize: const Size(0, 0),
                 ),
-                child: const Text(
-                  'Manage rooms & beds',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                child: Text(
+                  l10n.propertiesManageRoomsAndBeds,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 ),
               ),
               const Spacer(),
@@ -140,9 +142,9 @@ class PropertyListCard extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   minimumSize: const Size(0, 0),
                 ),
-                child: const Text(
-                  'Edit',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                child: Text(
+                  l10n.commonEdit,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 ),
               ),
             ],

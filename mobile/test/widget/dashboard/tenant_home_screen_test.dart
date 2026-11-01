@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pg_khata/core/theme/app_theme.dart';
+import 'package:pg_khata/l10n/app_localizations.dart';
+import 'package:pg_khata/features/announcements/application/announcements_providers.dart';
 import 'package:pg_khata/features/complaints/application/complaints_providers.dart';
 import 'package:pg_khata/features/dashboard/presentation/tenant/tenant_home_screen.dart';
 import 'package:pg_khata/features/payments/application/payments_providers.dart';
@@ -56,9 +58,12 @@ void main() {
         propertiesProvider.overrideWith(() => _FakePropertiesController()),
         paymentHistoryProvider.overrideWith((ref, tenantId) async => history),
         tenantComplaintsProvider.overrideWith((ref, tenantId) async => []),
+        currentAnnouncementProvider.overrideWith((ref, propertyId) async => null),
       ],
       child: MaterialApp(
         theme: AppTheme.light,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: TenantHomeScreen()),
       ),
     );

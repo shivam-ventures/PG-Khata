@@ -32,7 +32,7 @@ void main() {
       'Rent': '6500',
     });
     expect(row.isValid, isFalse);
-    expect(row.error, 'Missing room/bed');
+    expect(row.error, TenantImportRowError.missingRoomBed);
   });
 
   test('flags a zero or negative rent', () {
@@ -42,6 +42,6 @@ void main() {
       'Rent': '0',
     });
     expect(row.isValid, isFalse);
-    expect(row.error, 'Invalid rent');
+    expect(row.error, TenantImportRowError.invalidRent);
   });
 }

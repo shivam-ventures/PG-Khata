@@ -7,6 +7,7 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_scaffold.dart';
 import '../../../shared/widgets/async_value_view.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -24,6 +25,7 @@ class OwnerReportsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final reportsAsync = ref.watch(reportsProvider);
 
     return AppScaffold(
@@ -50,13 +52,13 @@ class OwnerReportsScreen extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Reports',
+                        l10n.ownerReports,
                         style: AppTextStyles.screenTitle.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       Text(
-                        'Portfolio performance, month to date',
+                        l10n.reportsSubtitle,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: context.appColors.textMuted,
                         ),
@@ -89,6 +91,7 @@ class _ReportsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.space4),
       children: [
@@ -102,9 +105,11 @@ class _ReportsBody extends StatelessWidget {
             Expanded(
               child: StatCard(
                 icon: Icons.currency_rupee,
-                label: 'Total revenue',
+                label: l10n.reportsStatTotalRevenue,
                 value: CurrencyFormatter.rupees(data.totalRevenue),
-                sub: 'of ${CurrencyFormatter.rupees(data.totalExpected)} expected',
+                sub: l10n.reportsStatTotalRevenueSub(
+                  CurrencyFormatter.rupees(data.totalExpected),
+                ),
                 tone: SemanticTone.success,
               ),
             ),
@@ -112,9 +117,9 @@ class _ReportsBody extends StatelessWidget {
             Expanded(
               child: StatCard(
                 icon: Icons.home_outlined,
-                label: 'Avg occupancy',
+                label: l10n.reportsStatAvgOccupancy,
                 value: '${data.avgOccupancyPercent}%',
-                sub: 'across ${data.propertyComparison.length} PGs',
+                sub: l10n.reportsStatAvgOccupancySub(data.propertyComparison.length),
                 tone: SemanticTone.accent,
               ),
             ),
@@ -127,9 +132,9 @@ class _ReportsBody extends StatelessWidget {
             Expanded(
               child: StatCard(
                 icon: Icons.calendar_month_outlined,
-                label: 'Avg days late',
+                label: l10n.reportsStatAvgDaysLate,
                 value: data.avgDaysLate.toStringAsFixed(1),
-                sub: '0 = paid on time',
+                sub: l10n.reportsStatAvgDaysLateSub,
                 tone: SemanticTone.info,
               ),
             ),
@@ -137,9 +142,9 @@ class _ReportsBody extends StatelessWidget {
             Expanded(
               child: StatCard(
                 icon: Icons.check_circle_outline,
-                label: 'Complaint resolution',
+                label: l10n.reportsStatComplaintResolution,
                 value: '${data.complaintResolutionPercent}%',
-                sub: 'of total complaints',
+                sub: l10n.reportsStatComplaintResolutionSub,
                 tone: SemanticTone.success,
               ),
             ),
@@ -147,17 +152,17 @@ class _ReportsBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.space4),
         _Section(
-          title: 'Revenue by PG',
+          title: l10n.reportsRevenueByPg,
           child: _RevenueBars(bars: data.revenueByProperty),
         ),
         const SizedBox(height: AppSpacing.space4),
         _Section(
-          title: 'Occupancy trend (6 mo)',
+          title: l10n.reportsOccupancyTrend,
           child: _OccupancyChart(points: data.occupancyTrend),
         ),
         const SizedBox(height: AppSpacing.space4),
         Text(
-          'PG comparison',
+          l10n.reportsPgComparison,
           style: AppTextStyles.sectionHeading.copyWith(
             fontSize: 18,
             color: Theme.of(context).colorScheme.onSurface,
@@ -212,11 +217,12 @@ class _RevenueBars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (bars.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.bar_chart_outlined,
-        title: 'No PGs yet',
-        message: 'Revenue by PG shows up here once you add one.',
+        title: l10n.ownerNoPgsTitle,
+        message: l10n.reportsEmptyMessage,
       );
     }
     final maxAmount = bars
@@ -393,8 +399,11 @@ class _ComparisonRow extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Occupancy ${row.occupancyLabel} · ${row.openComplaints} '
-            'complaints · ${row.managerName}',
+            AppLocalizations.of(context).reportsComparisonLine(
+              row.occupancyLabel,
+              row.openComplaints,
+              row.managerName,
+            ),
             style: AppTextStyles.bodySmall.copyWith(
               color: context.appColors.textMuted,
             ),
