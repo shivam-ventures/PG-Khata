@@ -41,8 +41,9 @@ product decisions log ([`docs/DECISIONS.md`](docs/DECISIONS.md)), and direct ins
 
 - **Three roles** with role-aware navigation: Owner, Manager, Tenant. Owner and Manager can manage
   multiple properties.
-- **Mobile-first**, card-based UI (no desktop tables). Light and dark themes. Design system "Modernist"
-  (square corners, single red accent, Archivo type).
+- **Mobile-first**, card-based UI (no desktop tables). Light and dark themes. The app uses the approved
+  screens' `tokens-extra.css` layer: indigo accent, Manrope headings, Inter body, 8/12/20 px rounded corners.
+  (The base "Modernist" tokens in the design handoff README, red accent and square corners, are superseded.)
 - **Sign-in by phone number + OTP.** No passwords.
 - **Tenant onboarding, two paths:**
   - *Invite link*: a manager generates a bed-specific, expiring link; the tenant verifies by OTP and
